@@ -13,3 +13,9 @@ Route::group(['middleware'=>'api','prefix'=>'auth'],function($router){
     Route::get('/profile',[AuthController::class,'profile']);
     Route::post('/logout',[AuthController::class,'logout']);
 });
+
+Route::group(['middleware'=>'api','prefix'=>'pages'],function($router){
+    Route::get('/about',[PageController::class,'about']);
+    Route::get('/terms_conditions',[PageController::class,'termsAndCondition']);
+    Route::get('/privacy_policy',[PageController::class,'privacyPolicy']);
+});
