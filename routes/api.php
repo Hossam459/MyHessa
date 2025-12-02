@@ -20,3 +20,9 @@ Route::group(['middleware'=>'api','prefix'=>'pages'],function($router){
     Route::get('/terms_conditions',[PageController::class,'termsAndCondition']);
     Route::get('/privacy_policy',[PageController::class,'privacyPolicy']);
 });
+
+Route::get('/lang-test', function () {
+    return response()->json([
+        'message' => __('messages.register_success')
+    ]);
+});

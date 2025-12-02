@@ -25,7 +25,11 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "exclude-from-classmap": [
+        "vendor/league/flysystem/src/Local/",
+        "vendor/laravel/pint/app/Providers/"
+    ]
     },
     "autoload-dev": {
         "psr-4": {
