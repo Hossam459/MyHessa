@@ -2,7 +2,7 @@
 
 return [
     'name_required' => 'الاسم مطلوب',
-    'email_required' => 'البريد الإلكتروني مطلوب',
+    'email_required' => 'Email is required',
     'email_invalid' => 'البريد الإلكتروني غير صالح',
     'email_unique' => 'البريد الإلكتروني مستخدم مسبقًا',
     'password_required' => 'كلمة المرور مطلوبة',

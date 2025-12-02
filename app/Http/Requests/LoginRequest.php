@@ -21,6 +21,14 @@ class LoginRequest extends FormRequest
         ];
     }
 
+    public function messages()
+    {
+        return [
+            'email.required' => __('validation.email_required'),
+            'password.required' => __('validation.password_required'),
+        ];
+    }
+
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json(['status' => '','message' =>$validator->errors()->first(),'data'=>null], 422));

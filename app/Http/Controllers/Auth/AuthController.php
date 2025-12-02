@@ -74,7 +74,7 @@ class AuthController extends Controller
             return $this->success($success,__('messages.login_success'));
         }
 
-        return $this->error([], __('messages.invalid_credentials'));
+        return $this->error([],__('messages.invalid_credentials'));
     }
         
     

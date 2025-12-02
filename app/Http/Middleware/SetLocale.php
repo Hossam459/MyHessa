@@ -9,14 +9,14 @@ class SetLocale
 {
     public function handle($request, Closure $next)
     {
-        $lang = $request->header('Accept-Language');
+        $lang = $request->header('Accept-Language', 'ar');
 
         if (!in_array($lang, ['ar', 'en'])) {
             $lang = 'en';
         }
 
         App::setLocale($lang);
-
+        Log::info("Using Locale: " . App::getLocale());
         return $next($request);
     }
 }
