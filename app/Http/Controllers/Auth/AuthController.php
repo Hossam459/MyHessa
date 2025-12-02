@@ -94,7 +94,7 @@ class AuthController extends Controller
         return $this->success($user, '') ;
     }
     else{
-        return $this->error(null, 'unuthrized') ;
+        return $this->error(null, __('messages.unauthorized')) ;
     }   
     }
 
@@ -105,7 +105,7 @@ class AuthController extends Controller
         auth()->logout();
         return $this->success(null,__('messages.logout_success'));    
         }else{
-            return $this->error(null,  __('messages.invalid_credentials')) ;
+            return $this->error(null,  __('messages.unauthorized')) ;
         }  
     }
 
