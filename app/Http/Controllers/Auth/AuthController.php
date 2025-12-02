@@ -57,7 +57,7 @@ class AuthController extends Controller
         ]);
     }
     
-        return $this->success($user,'User successfully registered');
+        return $this->success($user,__('messages.register_success'));
     }
 
     public function login(LoginRequest $request): JsonResponse
@@ -71,10 +71,10 @@ class AuthController extends Controller
 
             $success = $this->createNewToken($token);
 
-            return $this->success($success,'User Login successfully.');
+            return $this->success($success,__('messages.login_success'));
         }
 
-        return $this->error([], 'Email or Password wrong.');
+        return $this->error([], __('messages.invalid_credentials'));
     }
         
     
@@ -103,9 +103,9 @@ class AuthController extends Controller
         $user = auth()->user();
         if($user!=null){
         auth()->logout();
-        return $this->success(null,'User successfully logout');    
+        return $this->success(null,__('messages.logout_success'));    
         }else{
-            return $this->error(null, 'unuthrized') ;
+            return $this->error(null,  __('messages.invalid_credentials')) ;
         }  
     }
 
