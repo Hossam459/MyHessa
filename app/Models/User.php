@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -20,11 +20,12 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'full_name',
+        'user_name',
         'email',
         'password',
+        'image_profile',
         'role',
-        'is_verified'
+        'is_verified',
     ];
 
     /**
@@ -59,4 +60,15 @@ class User extends Authenticatable
     {
         return [];
     }
+
+    public function student()
+{
+    return $this->hasOne(Student::class);
+}
+
+public function teacher()
+{
+    return $this->hasOne(Teacher::class);
+}
+
 }

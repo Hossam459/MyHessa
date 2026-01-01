@@ -1,11 +1,11 @@
 <?php
 
 return [
-    'name_required' => 'الاسم مطلوب',
+    'name_required' => 'Name is required ',
     'email_required' => 'Email is required',
-    'email_invalid' => 'البريد الإلكتروني غير صالح',
-    'email_unique' => 'البريد الإلكتروني مستخدم مسبقًا',
-    'password_required' => 'كلمة المرور مطلوبة',
-    'password_min' => 'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
-    'password_confirmed' => 'تأكيد كلمة المرور غير مطابق',
+    'email_invalid' => 'Email is invalid',
+    'email_unique' => 'Email is already used',
+    'password_required' => 'Password is required',
+    'password_min' => 'Password must be at least 6 characters',
+    'password_confirmed' => 'Password confirmation does not match',
 ];

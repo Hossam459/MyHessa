@@ -4,7 +4,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Pages\PageController;
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+use App\Http\Controllers\Language\LanguageController;
+use App\Http\Controllers\Regions\RegionsController;
+
+Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
@@ -15,14 +18,20 @@ Route::group(['middleware'=>'api','prefix'=>'auth'],function($router){
     Route::post('/logout',[AuthController::class,'logout']);
 });
 
-Route::group(['middleware'=>'api','prefix'=>'pages'],function($router){
+Route::group(['middlewar'=>'api','prefix'=>'pages'],function($router){
     Route::get('/about',[PageController::class,'about']);
     Route::get('/terms_conditions',[PageController::class,'termsAndCondition']);
     Route::get('/privacy_policy',[PageController::class,'privacyPolicy']);
 });
 
-Route::get('/lang-test', function () {
+Route::get('/{lang}/lang-test', function () {
     return response()->json([
         'message' => __('messages.register_success')
     ]);
 });
+
+Route::get('/change/{lang}',[LanguageController::class,'changeLang'])->name('changeLang');
+
+Route::get('/governorates', [RegionsController::class, 'getAllGovernorates']);
+
+
