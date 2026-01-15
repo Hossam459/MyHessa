@@ -83,4 +83,6 @@ MyHessa is not responsible for disputes between teachers and students related to
 Changes to Terms
 
 We may update these terms at any time. Continued use of the app means acceptance of the updated terms.',
+'students_list' => 'List of students for the lesson',
+
 ];

@@ -7,9 +7,11 @@ use Throwable;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Illuminate\Auth\AuthenticationException;
+use App\Http\Traits\HttpResponses;
 
 class Handler extends ExceptionHandler
 {
+        use HttpResponses;
     /**
      * A list of exception types with their corresponding custom log levels.
      *
@@ -53,10 +55,7 @@ class Handler extends ExceptionHandler
 
      protected function unauthenticated($request, AuthenticationException $exception)
     {
-        return response()->json([
-            'success' => false,
-            'message' => 'Unauthenticated or token is invalid',
-        ], 401);
+        $this->error(null, __('messages.unauthorized'));
     }
 
     public function render($request, Throwable $e)
