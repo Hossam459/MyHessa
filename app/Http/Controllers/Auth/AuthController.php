@@ -74,6 +74,10 @@ class AuthController extends Controller
         $user->profile = $student->load('gradeLevel');
     }
     
+     $user->image_profile_url = $user->image_profile
+        ? asset('storage/uploads/' . $user->image_profile)
+        : null;
+
     return $this->success([
         'user' => $user,
         'profile' => $related
