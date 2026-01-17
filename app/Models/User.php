@@ -38,6 +38,7 @@ class User extends Authenticatable implements JWTSubject
         'remember_token',
     ];
 
+    protected $appends = ['image_profile_url'];
     /**
      * Get the attributes that should be cast.
      *
@@ -69,6 +70,15 @@ class User extends Authenticatable implements JWTSubject
 public function teacher()
 {
     return $this->hasOne(Teacher::class);
+}
+
+public function getImageProfileUrlAttribute(): ?string
+{
+    if (!$this->image_profile) {
+        return null;
+    }
+
+    return asset('storage/uploads/' . $this->image_profile);
 }
 
 }

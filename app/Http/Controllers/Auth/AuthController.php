@@ -74,9 +74,7 @@ class AuthController extends Controller
         $user->profile = $student->load('gradeLevel');
     }
     
-     $user->image_profile_url = $user->image_profile
-        ? asset('storage/uploads/' . $user->image_profile)
-        : null;
+        $user = $user->fresh();
 
     return $this->success([
         'user' => $user,
@@ -138,6 +136,38 @@ public function createNewToken($token){
         }else{
             return $this->error(null,  __('messages.unauthorized')) ;
         }  
+    }
+
+        public function updateProfilePhoto(Request $request): JsonResponse
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return $this->error(null, __('messages.unauthorized'), 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'image_profile' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+        ], [
+            'image_profile.required' => __('profile.image_required'),
+            'image_profile.image'    => __('profile.image_invalid'),
+            'image_profile.mimes'    => __('profile.image_type_not_allowed'),
+            'image_profile.max'      => __('profile.image_too_large'),
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error($validator->errors(), __('profile.invalid_data'), 422);
+        }
+
+        // delete old
+        if ($user->image_profile) {
+            \Storage::delete('public/users/' . $user->image_profile);
+        }
+
+        $request->file('image_profile')->store('public/users');
+        $user->image_profile = $request->file('image_profile')->hashName();
+        $user->save();
+
+        return $this->success($user->fresh(), __('profile.updated'));
     }
 
 }

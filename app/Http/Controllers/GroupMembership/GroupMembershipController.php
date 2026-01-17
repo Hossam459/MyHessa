@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\GroupMembership;
 
 use App\Models\Group;
 use App\Models\Student;
@@ -13,6 +13,14 @@ use App\Http\Traits\HttpResponses;
 class GroupMembershipController extends Controller
 {
     use HttpResponses;
+
+
+     private function assertTeacherOwnsGroup(Group $group, int $teacherId)
+    {
+        if ((int)$group->teacher_id !== (int)$teacherId) {
+            abort(403, __('group.not_group_teacher'));
+        }
+    }
 
     // 1) الطالب يطلب الانضمام (pending)
     public function studentRequestJoin(Request $request, $groupId)
@@ -74,6 +82,7 @@ class GroupMembershipController extends Controller
         }
 
         $group = Group::findOrFail($groupId);
+        $this->assertTeacherOwnsGroup($group, $teacher->id);
         $studentId = (int) $request->student_id;
 
         // (اختياري) تحقق إن المدرس صاحب الجروب أو مرتبط بيه
@@ -112,6 +121,9 @@ class GroupMembershipController extends Controller
             return $this->error(null, 'Unauthorized', 401);
         }
 
+        $group = Group::findOrFail($groupId);
+        $this->assertTeacherOwnsGroup($group, $teacher->id);
+
         $membership = GroupMembership::where('group_id', $groupId)
             ->where('student_id', $studentId)
             ->first();
@@ -144,6 +156,9 @@ class GroupMembershipController extends Controller
             return $this->error(null, 'Unauthorized', 401);
         }
 
+        $group = Group::findOrFail($groupId);
+        $this->assertTeacherOwnsGroup($group, $teacher->id);
+
         $membership = GroupMembership::where('group_id', $groupId)
             ->where('student_id', $studentId)
             ->first();
@@ -169,7 +184,14 @@ class GroupMembershipController extends Controller
     // 5) قائمة الطلبات المعلقة للجروب
     public function listPending($groupId)
     {
+        $user = auth()->user();
+        $teacher = $user?->teacher;
+        if (!$teacher) {
+            return $this->error(null, __('auth.unauthorized') ?? 'Unauthorized', 401);
+        }
+
         $group = Group::findOrFail($groupId);
+        $this->assertTeacherOwnsGroup($group, $teacher->id);
 
         $pending = GroupMembership::with(['student.user'])
             ->where('group_id', $group->id)

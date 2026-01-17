@@ -76,6 +76,8 @@ class GroupController extends Controller {
             return [
                 'student_id' => $m->student_id,
                 'name'       => $m->student?->user?->user_name,
+                'image_profile_url' => $m->student?->user?->image_profile_url,
+
             ];
         });
 

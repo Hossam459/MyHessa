@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Groups;
+namespace App\Http\Controllers\Group;
 
 use App\Http\Controllers\Controller;
 use App\Http\Traits\HttpResponses;

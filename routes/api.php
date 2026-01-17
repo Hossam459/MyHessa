@@ -21,6 +21,8 @@ Route::group(['middleware'=>'api','prefix'=>'auth'],function($router){
     Route::post('/login',[AuthController::class,'login']);
     Route::get('/profile',[AuthController::class,'profile']);
     Route::post('/logout',[AuthController::class,'logout']);
+    Route::post('/profile/photo', [AuthController::class,'updateProfilePhoto'])->middleware('auth:api');
+
 });
 
 Route::group(['middlewar'=>'api','prefix'=>'pages'],function($router){
@@ -55,24 +57,27 @@ Route::group(['middlewar'=>'api','prefix'=>'lessons'],function($router){
 
 
 Route::group(['middlewar'=>'api','prefix'=>'groups'],function($router){
- Route::post('/create',[GroupController::class,'create']);
-    Route::put('/{groupId}/update',[GroupController::class,'update']);
-    Route::delete('/{groupId}/delete',[GroupController::class,'delete']);
-    Route::post('{groupId}/join-request', [GroupMembershipController::class, 'studentRequestJoin']);
-    Route::post('{groupId}/add-student',  [GroupMembershipController::class, 'teacherAddStudent']);
-    Route::post('{groupId}/requests/{studentId}/approve', [GroupMembershipController::class, 'approve']);
-    Route::post('{groupId}/requests/{studentId}/reject',  [GroupMembershipController::class, 'reject']);
-    Route::get('{groupId}/requests', [GroupMembershipController::class, 'listPending']);
-    Route::get('/{groupId}/attachments', [GroupAttachmentController::class, 'list']);
-    Route::post('/{groupId}/attachments', [GroupAttachmentController::class, 'upload']);
-    Route::delete('/{groupId}/attachments/{attachmentId}', [GroupAttachmentController::class, 'delete']);
-    Route::get('/{groupId}/students', [GroupController::class, 'students']);
+ Route::post('/create',[GroupController::class,'create'])->middleware('auth:api');
+    Route::put('/{groupId}/update',[GroupController::class,'update'])->middleware('auth:api');
+    Route::delete('/{groupId}/delete',[GroupController::class,'delete'])->middleware('auth:api');
+    Route::post('/{groupId}/join-request', [GroupMembershipController::class, 'studentRequestJoin'])->middleware('auth:api');
+    Route::post('/{groupId}/add-student',  [GroupMembershipController::class, 'teacherAddStudent'])->middleware('auth:api');
+    Route::post('/{groupId}/requests/{studentId}/approve', [GroupMembershipController::class, 'approve'])->middleware('auth:api');
+    Route::post('/{groupId}/requests/{studentId}/reject',  [GroupMembershipController::class, 'reject'])->middleware('auth:api');
+    Route::get('/{groupId}/pending', [GroupMembershipController::class,'listPending'])->middleware('auth:api');
+    Route::get('/{groupId}/requests', [GroupMembershipController::class, 'listPending'])->middleware('auth:api');
+    Route::get('/{groupId}/attachments', [GroupAttachmentController::class, 'list'])->middleware('auth:api');
+    Route::post('/{groupId}/attachments', [GroupAttachmentController::class, 'upload'])->middleware('auth:api');
+    Route::delete('/{groupId}/attachments/{attachmentId}', [GroupAttachmentController::class, 'delete'])->middleware('auth:api');
+    Route::get('/{groupId}/students', [GroupController::class, 'students'])->middleware('auth:api');
 });
 
 
 Route::group(['middlewar'=>'api','prefix'=>'teachers'],function($router) {
-    Route::post('/{teacherId}/rate', [TeacherRatingController::class, 'rate']);
-    Route::get('/{teacherId}/ratings', [TeacherRatingController::class, 'list']);
-    Route::get('/{teacherId}/rating-summary', [TeacherRatingController::class, 'summary']);
+    Route::post('/{teacherId}/rate', [TeacherRatingController::class, 'rate'])->middleware('auth:api');
+    Route::get('/{teacherId}/ratings', [TeacherRatingController::class, 'list'])->middleware('auth:api');
+    Route::get('/{teacherId}/rating-summary', [TeacherRatingController::class, 'summary'])->middleware('auth:api');
 });
+
+
 
