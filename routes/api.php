@@ -11,6 +11,7 @@ use App\Http\Controllers\Attendance\AttendanceController;
 use App\Http\Controllers\Group\GroupController;
 use App\Http\Controllers\Group\GroupMembershipController;
 use App\Http\Controllers\Groups\GroupAttachmentController;
+use App\Http\Controllers\Teachers\TeacherRatingController;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -57,14 +58,21 @@ Route::group(['middlewar'=>'api','prefix'=>'groups'],function($router){
  Route::post('/create',[GroupController::class,'create']);
     Route::put('/{groupId}/update',[GroupController::class,'update']);
     Route::delete('/{groupId}/delete',[GroupController::class,'delete']);
-     Route::post('{groupId}/join-request', [GroupMembershipController::class, 'studentRequestJoin']); // الطالب
-    Route::post('{groupId}/add-student',  [GroupMembershipController::class, 'teacherAddStudent']);  // المدرس
+    Route::post('{groupId}/join-request', [GroupMembershipController::class, 'studentRequestJoin']);
+    Route::post('{groupId}/add-student',  [GroupMembershipController::class, 'teacherAddStudent']);
     Route::post('{groupId}/requests/{studentId}/approve', [GroupMembershipController::class, 'approve']);
     Route::post('{groupId}/requests/{studentId}/reject',  [GroupMembershipController::class, 'reject']);
     Route::get('{groupId}/requests', [GroupMembershipController::class, 'listPending']);
-    Route::get('/groups/{groupId}/attachments', [GroupAttachmentController::class, 'list']);
-    Route::post('/groups/{groupId}/attachments', [GroupAttachmentController::class, 'upload']); // teacher only (check inside)
-    Route::delete('/groups/{groupId}/attachments/{attachmentId}', [GroupAttachmentController::class, 'delete']); // teacher only
-Route::get('/groups/{groupId}/students', [GroupController::class, 'students']);
+    Route::get('/{groupId}/attachments', [GroupAttachmentController::class, 'list']);
+    Route::post('/{groupId}/attachments', [GroupAttachmentController::class, 'upload']);
+    Route::delete('/{groupId}/attachments/{attachmentId}', [GroupAttachmentController::class, 'delete']);
+    Route::get('/{groupId}/students', [GroupController::class, 'students']);
+});
+
+
+Route::group(['middlewar'=>'api','prefix'=>'teachers'],function($router) {
+    Route::post('/{teacherId}/rate', [TeacherRatingController::class, 'rate']);
+    Route::get('/{teacherId}/ratings', [TeacherRatingController::class, 'list']);
+    Route::get('/{teacherId}/rating-summary', [TeacherRatingController::class, 'summary']);
 });
 

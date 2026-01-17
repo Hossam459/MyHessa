@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\TeacherRating;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Teacher extends Authenticatable
 {
@@ -39,5 +41,10 @@ class Teacher extends Authenticatable
     {
         return $this->belongsToMany(Subject::class, 'teacher_subject', 'teacher_id', 'subject_id');
     }
+
+    public function ratings()
+{
+    return $this->hasMany(\App\Models\TeacherRating::class);
+}
 
 }
