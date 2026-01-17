@@ -29,14 +29,14 @@ class TeacherRatingController extends Controller
             'rating'  => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:2000',
         ], [
-            'rating.required' => __('rating.rating_required'),
-            'rating.integer'  => __('rating.rating_integer'),
-            'rating.min'      => __('rating.rating_min'),
-            'rating.max'      => __('rating.rating_max'),
+            'rating.required' => __('message.rating_required'),
+            'rating.integer'  => __('message.rating_integer'),
+            'rating.min'      => __('message.rating_min'),
+            'rating.max'      => __('message.rating_max'),
         ]);
 
         if ($validator->fails()) {
-            return $this->error($validator->errors(), __('rating.invalid_data'), 422);
+            return $this->error($validator->errors(), __('message.invalid_data'), 422);
         }
 
 
