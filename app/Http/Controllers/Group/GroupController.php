@@ -15,6 +15,9 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Traits\Access;
 use App\Models\Student;
 use App\Models\Teacher;
+use App\Models\GroupMembership;
+use App\Models\GroupSchedule;
+use App\Models\Group;
 
 class GroupController extends Controller {
     use HttpResponses;
@@ -59,4 +62,23 @@ class GroupController extends Controller {
             })->exists();
         if($conflict) abort(422, __('group.schedule_conflict'));
     }
+
+    public function students($groupId)
+{
+    $group = Group::findOrFail($groupId);
+
+    $students = GroupMembership::with(['student.user'])
+        ->where('group_id', $group->id)
+        ->where('status', 'approved')
+        ->orderBy('id')
+        ->get()
+        ->map(function ($m) {
+            return [
+                'student_id' => $m->student_id,
+                'name'       => $m->student?->user?->user_name,
+            ];
+        });
+
+    return $this->success($students, __('group.students_list'));
+}
 }

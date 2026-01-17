@@ -10,7 +10,7 @@ use App\Http\Controllers\Lesson\LessonController;
 use App\Http\Controllers\Attendance\AttendanceController;
 use App\Http\Controllers\Group\GroupController;
 use App\Http\Controllers\Group\GroupMembershipController;
-
+use App\Http\Controllers\Groups\GroupAttachmentController;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -62,5 +62,9 @@ Route::group(['middlewar'=>'api','prefix'=>'groups'],function($router){
     Route::post('{groupId}/requests/{studentId}/approve', [GroupMembershipController::class, 'approve']);
     Route::post('{groupId}/requests/{studentId}/reject',  [GroupMembershipController::class, 'reject']);
     Route::get('{groupId}/requests', [GroupMembershipController::class, 'listPending']);
+    Route::get('/groups/{groupId}/attachments', [GroupAttachmentController::class, 'list']);
+    Route::post('/groups/{groupId}/attachments', [GroupAttachmentController::class, 'upload']); // teacher only (check inside)
+    Route::delete('/groups/{groupId}/attachments/{attachmentId}', [GroupAttachmentController::class, 'delete']); // teacher only
+Route::get('/groups/{groupId}/students', [GroupController::class, 'students']);
 });
 
