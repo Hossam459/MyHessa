@@ -8,6 +8,8 @@ use App\Http\Controllers\Language\LanguageController;
 use App\Http\Controllers\Regions\RegionsController;
 use App\Http\Controllers\Lesson\LessonController;
 use App\Http\Controllers\Attendance\AttendanceController;
+use App\Http\Controllers\Group\GroupController;
+use App\Http\Controllers\Group\GroupMembershipController;
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
@@ -55,5 +57,10 @@ Route::group(['middlewar'=>'api','prefix'=>'groups'],function($router){
  Route::post('/create',[GroupController::class,'create']);
     Route::put('/{groupId}/update',[GroupController::class,'update']);
     Route::delete('/{groupId}/delete',[GroupController::class,'delete']);
+     Route::post('{groupId}/join-request', [GroupMembershipController::class, 'studentRequestJoin']); // الطالب
+    Route::post('{groupId}/add-student',  [GroupMembershipController::class, 'teacherAddStudent']);  // المدرس
+    Route::post('{groupId}/requests/{studentId}/approve', [GroupMembershipController::class, 'approve']);
+    Route::post('{groupId}/requests/{studentId}/reject',  [GroupMembershipController::class, 'reject']);
+    Route::get('{groupId}/requests', [GroupMembershipController::class, 'listPending']);
 });
 

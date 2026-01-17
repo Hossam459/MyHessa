@@ -9,4 +9,18 @@ class Group extends Model {
     public function schedules() { return $this->hasMany(GroupSchedule::class); }
     public function students() { return $this->hasMany(Student::class, 'group_id'); }
     public function lessons() { return $this->hasMany(Lesson::class); }
+    public function memberships()
+{
+    return $this->hasMany(GroupMembership::class);
+}
+
+public function approvedStudents()
+{
+    return $this->hasMany(GroupMembership::class)->where('status','approved');
+}
+
+public function pendingRequests()
+{
+    return $this->hasMany(GroupMembership::class)->where('status','pending');
+}
 }

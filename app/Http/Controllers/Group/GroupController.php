@@ -19,7 +19,6 @@ use App\Models\Teacher;
 class GroupController extends Controller {
     use HttpResponses;
 
-    // إنشاء مجموعة + جدول المواعيد
     public function create(GroupRequest $request) {
         DB::transaction(function() use ($request, &$group) {
             $group = Group::create($request->only(['name','description','subject_id','grade_level_id','max_students','price']));
@@ -31,7 +30,6 @@ class GroupController extends Controller {
         return $this->success($group->load('schedules'), __('group.created'));
     }
 
-    // تعديل مجموعة + جدول المواعيد
     public function update(GroupRequest $request,$groupId) {
         $group = Group::findOrFail($groupId);
         DB::transaction(function() use ($request,$group) {
@@ -45,14 +43,12 @@ class GroupController extends Controller {
         return $this->success($group->load('schedules'), __('group.updated'));
     }
 
-    // حذف مجموعة
     public function delete($groupId) {
         $group = Group::findOrFail($groupId);
         $group->delete();
         return $this->success(null, __('group.deleted'));
     }
 
-    // التحقق من التعارض
     private function checkScheduleConflict($groupId,$day,$start,$end){
         $conflict = GroupSchedule::where('group_id',$groupId)->where('day_of_week',$day)
             ->where(function($q) use ($start,$end){
