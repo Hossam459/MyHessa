@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Traits\Access;
 use App\Models\Student;
 use App\Models\Teacher;
+use App\Http\Resources\UserResource;
 
 class AuthController extends Controller
 {
@@ -26,78 +27,77 @@ class AuthController extends Controller
         $this->middleware('auth:api',['except'=>['login','register']]);
     }
 
-    public function register(RegisterRequest $request): JsonResponse
-    {
-        $photo=null;
-        if($request->image_profile!=null){
-        $image=$request->image_profile->store('public/uploads/');
-        $photo= $request->image_profile->hashName();
-        }
-        $user=User::create(
-            [
-                'user_name'=>$request->name,
-                'email'=>$request->email,
-                'password'=>bcrypt($request->password),
-                'image_profile'=> $photo ?: null ,
-                'role'=>$request->role,
-                ]
-        );
+public function register(RegisterRequest $request): JsonResponse
+{
+    $photo = null;
 
-        if ($request->role === 'teacher') {
-      $teacher =   Teacher::create([
-            'user_id'           => $user->id,
-            'bio'               => $request->bio,
-            'birth_day'=>$request->birth_day,
-            'mobile_number'=>$request->mobile_number,
-            'first_name'=>$request->first_name,
-            'last_name'=>$request->last_name,
-            'goverment_id'=>$request->goverment,
-            'city_id'=>$request->city,
-        ]);
-        $teacher->subjects()->attach($request->subjects);
-        $user->profile = $teacher->load('subjects');
-
-    }
-    else if ($request->role === 'student') {
-       $student= Student::create([
-            'user_id'           => $user->id,
-            'grade_level_id'       => $request->grade_level,
-            'parent_name'       => $request->parent_name,
-            'parent_contact'    => $request->parent_contact,
-            'birth_day'=>$request->birth_day,
-            'mobile_number'=>$request->mobile_number,
-            'first_name'=>$request->first_name,
-            'last_name'=>$request->last_name,
-            'goverment_id'=>$request->goverment,
-            'city_id'=>$request->city,
-        ]);
-        $user->profile = $student->load('gradeLevel');
-    }
+        
+       $photo = $request->file('image_profile')
+    ? $request->file('image_profile')->store('users', 'public')
+    : null;
     
-        $user = $user->fresh();
+
+    $user = User::create([
+        'user_name'     => $request->name,
+        'email'         => $request->email,
+        'password'      => bcrypt($request->password),
+        'image_profile' => $photo,
+        'role'          => $request->role,
+    ]);
+
+    if ($request->role === 'teacher') {
+        $teacher = Teacher::create([
+            'user_id'        => $user->id,
+            'bio'            => $request->bio,
+            'birth_day'      => $request->birth_day,
+            'mobile_number'  => $request->mobile_number,
+            'first_name'     => $request->first_name,
+            'last_name'      => $request->last_name,
+            'goverment_id'   => $request->goverment,
+            'city_id'        => $request->city,
+        ]);
+
+        $teacher->subjects()->attach($request->subjects);
+    }
+
+    if ($request->role === 'student') {
+        Student::create([
+            'user_id'         => $user->id,
+            'grade_level_id'  => $request->grade_level,
+            'parent_name'     => $request->parent_name,
+            'parent_contact'  => $request->parent_contact,
+            'birth_day'       => $request->birth_day,
+            'mobile_number'   => $request->mobile_number,
+            'first_name'      => $request->first_name,
+            'last_name'       => $request->last_name,
+            'goverment_id'    => $request->goverment,
+            'city_id'         => $request->city,
+        ]);
+    }
+
+    $user->loadMissing(['student.gradeLevel', 'teacher.subjects']);
 
     return $this->success([
-        'user' => $user,
-        'profile' => $related
+        'user' => new UserResource($user)
     ], __('messages.register_success'));
+}
+
+public function login(LoginRequest $request): JsonResponse
+{
+    $credentials = $request->only(['email', 'password']);
+
+    if (!$token = auth()->attempt($credentials)) {
+        return $this->error([], __('messages.invalid_credentials'));
     }
 
-   public function login(LoginRequest $request): JsonResponse
-    {
-        $credentials = $request->only(['email', 'password']);
+    $user = auth()->user();
+    $user->loadMissing(['student.gradeLevel', 'teacher.subjects']);
 
-        if (!$token = auth()->attempt($credentials)) {
-            return $this->error([], __('messages.invalid_credentials'));
-        }
-
-        $user = auth()->user();
-        $user->loadMissing(['student.gradeLevel', 'teacher.subjects']);
-
-        return $this->success([
-            'access_token' => $token,
-            'user' => $user
-        ], __('messages.login_success'));
-    }
+    return $this->success([
+        'access_token' => $token,
+        'user' => new UserResource($user)
+    ], __('messages.login_success'));
+}
         
     
 
@@ -111,21 +111,20 @@ public function createNewToken($token){
 }
 
 
-    public function profile(): JsonResponse
-    {
-      $user = auth()->user();
-        if (!$user) {
-            return $this->error(null, __('messages.unauthorized'));
-        }else{
+public function profile(): JsonResponse
+{
+    $user = auth()->user();
 
-        $user->loadMissing(['student.gradeLevel', 'teacher.subjects']);
-        $user->profile = $user->role === 'student' ? $user->student : $user->teacher;
-
-        return $this->success($user);
-        }
-
-        
+    if (!$user) {
+        return $this->error(null, __('messages.unauthorized'));
     }
+
+    $user->loadMissing(['student.gradeLevel', 'teacher.subjects']);
+
+    return $this->success(
+        new UserResource($user)
+    );
+}
 
     public function logout(): JsonResponse
     {

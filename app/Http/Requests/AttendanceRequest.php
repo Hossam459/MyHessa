@@ -14,7 +14,7 @@ class AttendanceRequest extends FormRequest
     public function rules()
     {
         return [
-            'session_id' => 'required|exists:lessons,id',
+            'lessons_id' => 'required|exists:lessons,id',
             'students'   => 'required|array|min:1',
             'students.*.student_id' => 'required|exists:students,id',
             'students.*.status'     => 'required|in:present,late,absent,excused'
@@ -24,8 +24,8 @@ class AttendanceRequest extends FormRequest
     public function messages()
     {
         return [
-            'session_id.required' => __('validation.session_required'),
-            'session_id.exists'   => __('validation.session_not_found'),
+            'lessons_id.required' => __('validation.lessons_required'),
+            'lessons_id.exists'   => __('validation.lessons_not_found'),
 
             'students.required'  => __('validation.students_required'),
             'students.array'     => __('validation.students_array'),

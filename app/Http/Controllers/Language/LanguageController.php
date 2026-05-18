@@ -16,7 +16,8 @@ class LanguageController extends Controller
             return $this->error('Invalid language', 422);
         }
         app()->setLocale($lang);
-        return $this->success(null,__('messages.change_lang'));
+            return redirect()->back();
+
     }
 
 }

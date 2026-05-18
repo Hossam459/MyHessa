@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Attendance extends Model
 {
     protected $fillable = [
-        'session_id','student_id','status','marked_at'
+        'lessons_id','student_id','status','marked_at'
     ];
 
     public function student()
@@ -15,8 +15,8 @@ class Attendance extends Model
         return $this->belongsTo(Student::class);
     }
 
-    public function session()
+    public function lesson()
     {
-        return $this->belongsTo(Session::class);
+        return $this->belongsTo(Lesson::class);
     }
 }

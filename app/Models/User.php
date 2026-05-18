@@ -63,22 +63,27 @@ class User extends Authenticatable implements JWTSubject
     }
 
     public function student()
-{
+    {
     return $this->hasOne(Student::class);
-}
-
-public function teacher()
-{
-    return $this->hasOne(Teacher::class);
-}
-
-public function getImageProfileUrlAttribute(): ?string
-{
-    if (!$this->image_profile) {
-        return null;
     }
 
-    return asset('storage/uploads/' . $this->image_profile);
-}
+    public function teacher()
+    {
+    return $this->hasOne(Teacher::class);
+    }
+
+    public function emailVerificationTokens()
+    {
+        return $this->hasMany(EmailVerificationToken::class);
+    }
+
+    public function getImageProfileUrlAttribute(): ?string
+    {
+        if (!$this->image_profile) {
+            return null;
+        }
+
+        return asset('storage/users/' . $this->image_profile);
+    }
 
 }

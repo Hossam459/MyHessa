@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class GroupMembership extends Model
 {
+    const STATUS_PENDING = 'pending';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_REJECTED = 'rejected';
     protected $fillable = [
         'group_id','student_id','status',
         'requested_by','requested_by_user_id',

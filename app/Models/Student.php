@@ -47,8 +47,16 @@ class Student extends Authenticatable
         return $this->belongsTo(GradeLevel::class);
     }
 
-     public function attendances()
+     public function attendance()
     {
         return $this->hasMany(Attendance::class);
     }
+
+    public function favoriteGroups()
+{
+    return $this->belongsToMany(
+        Group::class,
+        'favorite_groups'
+    )->withTimestamps();
+}
 }

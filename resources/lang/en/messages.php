@@ -7,6 +7,9 @@ return [
     'error_occurred' => 'Something went wrong.',
     'unauthorized' => 'Unauthorized',
     'change_lang' => 'Language changed successfully.',
+    'success' => 'Success.',
+    'not_found' => 'Not found.',
+    'invalid_data' => 'Invalid data.',
     'about_us' => 'MyHessa is an education management platform created to simplify the daily work of private teachers and tutors in Egypt.
 We believe that teachers should focus on teaching, not paperwork or manual tracking. That’s why MyHessa was built to help educators organize classes, manage students, track attendance, control payments, and share educational content easily in one place.
 Our mission is to digitize private education management with a simple, reliable, and Arabic-first experience that fits the local education system, while also supporting English for wider accessibility.
@@ -93,4 +96,20 @@ We may update these terms at any time. Continued use of the app means acceptance
   'saved' => 'Rating saved',
   'list' => 'Ratings list',
   'summary' => 'Rating summary',
+  'list' => 'Group materials',
+  'uploaded' => 'File uploaded',
+  'deleted' => 'File deleted',
+  'forbidden_group_materials' => 'You can only view group materials after your membership is approved.',
+  'forbidden_teacher_group' => 'Forbidden. You are not the group teacher.',
+  'forbidden_group_overview' => 'You are not allowed to view this group.',
+  'overview' => 'Group overview',
+  'password_reset_link_sent' => 'Password reset link has been sent to your email.',
+  'invalid_token' => 'Invalid or expired token.',
+  'token_expired' => 'The token has expired. Please request a new password reset link.',
+  'password_reset_success' => 'Your password has been reset successfully.',
+  'email_send_failed' => 'Failed to send email. Please try again later.',
+  'email_already_verified' => 'Email is already verified.',
+  'verification_email_sent' => 'Verification email has been sent. Please check your inbox.',
+  'email_verified_successfully' => 'Your email has been verified successfully.',
+  'validation_error' => 'Validation error occurred.',
 ];

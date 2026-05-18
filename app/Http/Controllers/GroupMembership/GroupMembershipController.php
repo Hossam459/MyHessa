@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Traits\HttpResponses;
+use App\Http\Controllers\Controller;
 
 class GroupMembershipController extends Controller
 {
@@ -29,7 +30,7 @@ class GroupMembershipController extends Controller
         $student = $user->student;
 
         if (!$student) {
-            return $this->error(null, 'Unauthorized', 401);
+            return $this->error(null, __('auth.unauthorized'), 401);
         }
 
         $group = Group::findOrFail($groupId);
@@ -40,11 +41,11 @@ class GroupMembershipController extends Controller
             ->first();
 
         if ($membership && $membership->status === 'approved') {
-            return $this->success($membership, 'Already joined');
+            return $this->success($membership, __('group.already_joined'));
         }
 
         if ($membership && $membership->status === 'pending') {
-            return $this->success($membership, 'Request already pending');
+            return $this->success($membership, __('group.request_already_pending'));
         }
 
         // لو كان rejected قبل كده، نخليه pending تاني
@@ -60,7 +61,7 @@ class GroupMembershipController extends Controller
             ]
         );
 
-        return $this->success($membership, 'Join request sent');
+        return $this->success($membership, __('group.join_request_sent'));
     }
 
     // 2) المدرس يضيف طالب مباشرة (approved)
@@ -70,7 +71,7 @@ class GroupMembershipController extends Controller
         $teacher = $user->teacher;
 
         if (!$teacher) {
-            return $this->error(null, 'Unauthorized', 401);
+            return $this->error(null, __('auth.unauthorized'), 401);
         }
 
         $validator = Validator::make($request->all(), [
@@ -78,7 +79,7 @@ class GroupMembershipController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return $this->error($validator->errors(), 'Invalid data', 422);
+            return $this->error($validator->errors(), __('messages.invalid_data'), 422);
         }
 
         $group = Group::findOrFail($groupId);
@@ -93,7 +94,7 @@ class GroupMembershipController extends Controller
             ->first();
 
         if ($membership && $membership->status === 'approved') {
-            return $this->success($membership, 'Student already in group');
+            return $this->success($membership, __('group.student_already_in_group'));
         }
 
         $membership = GroupMembership::updateOrCreate(
@@ -108,7 +109,7 @@ class GroupMembershipController extends Controller
             ]
         );
 
-        return $this->success($membership, 'Student added');
+        return $this->success($membership, __('group.student_added'));
     }
 
     // 3) المدرس يقبل طلب
@@ -118,7 +119,7 @@ class GroupMembershipController extends Controller
         $teacher = $user->teacher;
 
         if (!$teacher) {
-            return $this->error(null, 'Unauthorized', 401);
+            return $this->error(null, __('auth.unauthorized'), 401);
         }
 
         $group = Group::findOrFail($groupId);
@@ -129,11 +130,11 @@ class GroupMembershipController extends Controller
             ->first();
 
         if (!$membership) {
-            return $this->error(null, 'Request not found', 404);
+            return $this->error(null, __('messages.not_found'), 404);
         }
 
         if ($membership->status === 'approved') {
-            return $this->success($membership, 'Already approved');
+            return $this->success($membership, __('group.already_approved'));
         }
 
         $membership->update([
@@ -143,7 +144,7 @@ class GroupMembershipController extends Controller
             'joined_at' => now(),
         ]);
 
-        return $this->success($membership, 'Approved');
+        return $this->success($membership, __('group.approved'));
     }
 
     // 4) المدرس يرفض طلب
@@ -153,7 +154,7 @@ class GroupMembershipController extends Controller
         $teacher = $user->teacher;
 
         if (!$teacher) {
-            return $this->error(null, 'Unauthorized', 401);
+            return $this->error(null, __('auth.unauthorized'), 401);
         }
 
         $group = Group::findOrFail($groupId);
@@ -164,11 +165,11 @@ class GroupMembershipController extends Controller
             ->first();
 
         if (!$membership) {
-            return $this->error(null, 'Request not found', 404);
+            return $this->error(null, __('messages.not_found'), 404);
         }
 
         if ($membership->status === 'rejected') {
-            return $this->success($membership, 'Already rejected');
+            return $this->success($membership, __('group.already_rejected'));
         }
 
         $membership->update([
@@ -178,7 +179,7 @@ class GroupMembershipController extends Controller
             'joined_at' => null,
         ]);
 
-        return $this->success($membership, 'Rejected');
+        return $this->success($membership, __('group.rejected'));
     }
 
     // 5) قائمة الطلبات المعلقة للجروب
@@ -187,7 +188,7 @@ class GroupMembershipController extends Controller
         $user = auth()->user();
         $teacher = $user?->teacher;
         if (!$teacher) {
-            return $this->error(null, __('auth.unauthorized') ?? 'Unauthorized', 401);
+            return $this->error(null, __('auth.unauthorized'), 401);
         }
 
         $group = Group::findOrFail($groupId);

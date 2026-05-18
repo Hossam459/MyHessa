@@ -24,7 +24,7 @@ class AttendanceController extends Controller
 
         foreach ($lesson->group->students as $student) {
             Attendance::firstOrCreate([
-                'session_id' => $lesson->id,
+                'lessons_id' => $lesson->id,
                 'student_id' => $student->id
             ]);
         }
@@ -34,7 +34,7 @@ class AttendanceController extends Controller
 
     public function markBulk(AttendanceRequest $request)
     {
-        $lesson = Lesson::with('group.students')->findOrFail($request->session_id);
+        $lesson = Lesson::with('group.students')->findOrFail($request->lessons_id);
 
         if ($lesson->attendance_status === 'closed') {
             return $this->error(null, __('validation.session_closed'));
@@ -48,7 +48,7 @@ class AttendanceController extends Controller
 
                 Attendance::updateOrCreate(
                     [
-                        'session_id' => $lesson->id,
+                        'lessons_id' => $lesson->id,
                         'student_id' => $row['student_id'],
                     ],
                     [
@@ -60,7 +60,7 @@ class AttendanceController extends Controller
         });
 
         $attendance = Attendance::with('student.user')
-            ->where('session_id', $lesson->id)
+            ->where('lessons_id', $lesson->id)
             ->get()
             ->map(function ($row) {
                 return [
@@ -86,7 +86,7 @@ class AttendanceController extends Controller
     public function sessionAttendance($lessonId)
     {
         $attendance = Attendance::with('student.user')
-            ->where('session_id', $lessonId)
+            ->where('lessons_id', $lessonId)
             ->get()
             ->map(function ($row) {
                 return [
@@ -108,6 +108,7 @@ public function studentsForLesson($lessonId)
         return [
             'student_id' => $student->id,
             'name'       => $student->user->user_name,
+            'image'      =>  $student->user->image_profile_url,
         ];
     });
 

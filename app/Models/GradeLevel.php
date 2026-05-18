@@ -18,25 +18,17 @@ class GradeLevel extends Model
 
     public $timestamps = false;
 
-    /**
-     * علاقة المواد الدراسية
-     */
+
     public function subjects(): HasMany
     {
         return $this->hasMany(Subject::class);
     }
 
-    /* =====================
-       Constants (اختياري)
-    ====================== */
 
     const STAGE_PRIMARY   = 'ابتدائي';
     const STAGE_PREP      = 'اعدادي';
     const STAGE_SECONDARY = 'ثانوي';
 
-    /* =====================
-       Scopes (اختياري)
-    ====================== */
 
     public function scopeStage($query, string $stage)
     {
