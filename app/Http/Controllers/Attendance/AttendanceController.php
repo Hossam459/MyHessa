@@ -23,6 +23,10 @@ class AttendanceController extends Controller
             return $this->error(null, __('attendance.session_closed'));
         }
 
+        if ($lesson->attendance_status === 'cancelled') {
+            return $this->error(null, __('lesson.already_cancelled'));
+        }
+
         foreach ($lesson->group->students as $student) {
             Attendance::firstOrCreate([
                 'lessons_id' => $lesson->id,
@@ -39,6 +43,10 @@ class AttendanceController extends Controller
 
         if ($lesson->attendance_status === 'closed') {
             return $this->error(null, __('attendance.session_closed'));
+        }
+
+        if ($lesson->attendance_status === 'cancelled') {
+            return $this->error(null, __('lesson.already_cancelled'));
         }
 
         DB::transaction(function () use ($request, $lesson) {
@@ -78,8 +86,13 @@ class AttendanceController extends Controller
 
     public function closeSession($lessonId)
     {
-        Lesson::where('id', $lessonId)
-            ->update(['attendance_status' => 'closed']);
+        $lesson = Lesson::findOrFail($lessonId);
+
+        if ($lesson->attendance_status === 'cancelled') {
+            return $this->error(null, __('lesson.already_cancelled'));
+        }
+
+        $lesson->update(['attendance_status' => 'closed']);
 
         return $this->success(null, __('attendance.session_closed'));
     }

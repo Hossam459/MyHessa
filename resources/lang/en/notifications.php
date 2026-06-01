@@ -29,6 +29,8 @@ return [
     'lesson_updated_body' => 'A lesson in :group was updated.',
     'lesson_closed_title' => 'Lesson closed',
     'lesson_closed_body' => 'Attendance was closed for :group.',
+    'lesson_cancelled_title' => 'Lesson cancelled',
+    'lesson_cancelled_body' => 'A lesson in :group was cancelled.',
     'group_feed_post_created_title' => 'New group post',
     'group_feed_post_created_body' => 'New post in :group.',
 ];

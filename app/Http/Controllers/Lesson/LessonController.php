@@ -55,6 +55,7 @@ class LessonController extends Controller {
     public function updateLesson(CreateOrUpdateLessonRequest $req,$lessonId){
         $lesson = Lesson::findOrFail($lessonId);
         if($lesson->attendance_status==='closed') return $this->error(null,__('attendance.session_closed'));
+        if($lesson->attendance_status==='cancelled') return $this->error(null,__('lesson.already_cancelled'));
 
         $user = auth()->user();
         if (!$user || !$user->teacher || (int) $lesson->teacher_id !== (int) $user->teacher->id) {
@@ -114,6 +115,10 @@ class LessonController extends Controller {
             return $this->error(null, __('group.not_group_teacher'), 403);
         }
 
+        if ($lesson->attendance_status === 'cancelled') {
+            return $this->error(null, __('lesson.already_cancelled'));
+        }
+
         $lesson->update(['attendance_status'=>'closed']);
         $lesson->loadMissing('group');
         if ($lesson->group) {
@@ -132,6 +137,42 @@ class LessonController extends Controller {
         }
 
         return $this->success(null, __('lesson.closed'));
+    }
+
+    public function cancelLesson($lessonId){
+        $lesson = Lesson::findOrFail($lessonId);
+
+        $user = auth()->user();
+        if (!$user || !$user->teacher || (int) $lesson->teacher_id !== (int) $user->teacher->id) {
+            return $this->error(null, __('group.not_group_teacher'), 403);
+        }
+
+        if ($lesson->attendance_status === 'closed') {
+            return $this->error(null, __('attendance.session_closed'));
+        }
+
+        if ($lesson->attendance_status === 'cancelled') {
+            return $this->success($lesson, __('lesson.already_cancelled'));
+        }
+
+        $lesson->update(['attendance_status' => 'cancelled']);
+        $lesson->loadMissing('group');
+        if ($lesson->group) {
+            $this->notifyApprovedStudents($lesson->group, [
+                'type' => 'lesson_cancelled',
+                'title' => __('notifications.lesson_cancelled_title'),
+                'body' => __('notifications.lesson_cancelled_body', ['group' => $lesson->group->name]),
+                'data' => [
+                    'group_id' => $lesson->group->id,
+                    'lesson_id' => $lesson->id,
+                    'teacher_id' => $user->teacher->id,
+                    'lesson_date' => $lesson->lesson_date,
+                    'start_time' => $lesson->start_time,
+                ],
+            ]);
+        }
+
+        return $this->success($lesson, __('lesson.cancelled'));
     }
 
     public function groupLessons($groupId)
@@ -396,6 +437,10 @@ class LessonController extends Controller {
 
         if (!$studentId) {
             return $lesson->attendance_status ?? 'pending';
+        }
+
+        if ($lesson->attendance_status === 'cancelled') {
+            return 'cancelled';
         }
 
         $attendance = $lesson->relationLoaded('attendances')

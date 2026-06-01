@@ -29,6 +29,8 @@ return [
     'lesson_updated_body' => 'تم تعديل حصة في :group.',
     'lesson_closed_title' => 'تم إغلاق الحصة',
     'lesson_closed_body' => 'تم إغلاق الحضور لـ :group.',
+    'lesson_cancelled_title' => 'تم إلغاء الحصة',
+    'lesson_cancelled_body' => 'تم إلغاء حصة في :group.',
     'group_feed_post_created_title' => 'منشور جديد بالمجموعة',
     'group_feed_post_created_body' => 'منشور جديد في :group.',
 ];

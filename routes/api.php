@@ -132,6 +132,7 @@ Route::group(['middleware'=>'api','prefix'=>'lessons'],function($router){
     Route::post('/create', [LessonController::class, 'createLesson'])->middleware(['auth:api','role:teacher']);
     Route::put('/{lessonId}/update', [LessonController::class, 'updateLesson'])->middleware(['auth:api','role:teacher']);
     Route::post('/{lessonId}/close',[LessonController::class,'closeLesson'])->middleware(['auth:api','role:teacher']);
+    Route::post('/{lessonId}/cancel',[LessonController::class,'cancelLesson'])->middleware(['auth:api','role:teacher']);
 
     Route::middleware(['auth:api','role:teacher'])->get('/teacher', [LessonController::class, 'teacherLessons']);
     Route::middleware(['auth:api','role:student'])->get('/student', [LessonController::class, 'studentLessons']);

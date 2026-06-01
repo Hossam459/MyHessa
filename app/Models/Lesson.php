@@ -23,6 +23,10 @@ class Lesson extends Model {
 
     public function getStatusAttribute(): string
     {
+        if ($this->attendance_status === 'cancelled') {
+            return 'cancelled';
+        }
+
         $now = Carbon::now();
         $start = $this->lessonDateTime($this->start_time);
         $end = $this->lessonDateTime($this->end_time);

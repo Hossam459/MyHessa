@@ -4,6 +4,8 @@ return [
     'created' => 'Lesson created successfully.',
     'updated' => 'Lesson updated successfully.',
     'closed' => 'Lesson closed successfully.',
+    'cancelled' => 'Lesson cancelled successfully.',
+    'already_cancelled' => 'Lesson is already cancelled.',
     'lessons_loaded' => 'Lessons loaded successfully.',
     'teacher_lessons_loaded' => 'Teacher lessons loaded successfully.',
     'end_time_after_start' => 'End time must be after start time.',
