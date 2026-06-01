@@ -33,7 +33,7 @@ class AppVersionController extends Controller
     $version = AppVersion::where('platform', $platform)->first();
 
     if (!$version) {
-        return$this->error([], 'Platform not supported'
+        return$this->error([], __('app.platform_not_supported')
         );
     }
 

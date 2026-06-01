@@ -13,7 +13,7 @@ class LanguageController extends Controller
     public function changeLang(string $lang)
     {
         if (! in_array($lang, ['en', 'ar'])) {
-            return $this->error('Invalid language', 422);
+            return $this->error(__('messages.invalid_language'), 422);
         }
         app()->setLocale($lang);
             return redirect()->back();

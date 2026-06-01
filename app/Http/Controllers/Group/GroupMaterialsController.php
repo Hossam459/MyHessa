@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Traits\HttpResponses;
 use App\Models\Group;
 use App\Models\GroupAttachment;
+use App\Models\GroupMembership;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -58,6 +59,7 @@ class GroupMaterialsController extends Controller
                     'mime_type' => $a->mime_type,
                     'file_size' => $a->file_size,
                     'url' => asset('storage/' . ltrim($a->file_path, '/')),
+                    'download_url' => url("/api/groups/{$a->group_id}/materials/{$a->id}/download"),
                     'created_at' => $a->created_at,
                 ];
             });
@@ -86,14 +88,14 @@ class GroupMaterialsController extends Controller
         }
 
         $file = $request->file('file');
-        $path = $file->store('public/group_materials/' . $group->id);
+        $path = $file->store('group_materials/' . $group->id, 'public');
 
         $attachment = GroupAttachment::create([
             'group_id'   => $group->id,
             'teacher_id' => $user->teacher->id,
             'title'      => $request->title,
             'file_name'  => $file->getClientOriginalName(),
-            'file_path'  => str_replace('public/', '', $path),
+            'file_path'  => $path,
             'mime_type'  => $file->getMimeType(),
             'file_size'  => $file->getSize(),
         ]);
@@ -105,10 +107,52 @@ class GroupMaterialsController extends Controller
             'mime_type' => $attachment->mime_type,
             'file_size' => $attachment->file_size,
             'url' => asset('storage/' . $attachment->file_path),
+            'download_url' => url("/api/groups/{$group->id}/materials/{$attachment->id}/download"),
         ], __('materials.uploaded'));
     }
 
-    // ✅ DELETE /groups/{groupId}/materials/{attachmentId} (Teacher only)
+    // ✅ GET /groups/{groupId}/materials/{attachmentId}/download
+    public function download($groupId, $attachmentId)
+    {
+        $group = Group::findOrFail($groupId);
+
+        [$allowed, $resp] = $this->ensureGroupAccess($group);
+        if (!$allowed) return $resp;
+
+        $attachment = GroupAttachment::where('group_id', $group->id)->findOrFail($attachmentId);
+
+        $path = ltrim($attachment->file_path, '/');
+
+        if (Storage::disk('public')->exists($path)) {
+            $fileContent = Storage::disk('public')->get($path);
+
+            return $this->success([
+                'id' => $attachment->id,
+                'title' => $attachment->title,
+                'file_name' => $attachment->file_name,
+                'mime_type' => $attachment->mime_type,
+                'file_size' => $attachment->file_size,
+                'base64' => base64_encode($fileContent),
+            ], __('materials.downloaded'));
+        }
+
+        $localPath = 'public/' . $path;
+        if (Storage::exists($localPath)) {
+            $fileContent = Storage::get($localPath);
+
+            return $this->success([
+                'id' => $attachment->id,
+                'title' => $attachment->title,
+                'file_name' => $attachment->file_name,
+                'mime_type' => $attachment->mime_type,
+                'file_size' => $attachment->file_size,
+                'base64' => base64_encode($fileContent),
+            ], __('materials.downloaded'));
+        }
+
+        return $this->error(null, __('messages.not_found'), 404);
+    }
+
     public function delete($groupId, $attachmentId)
     {
         $user = auth()->user();
@@ -122,6 +166,7 @@ class GroupMaterialsController extends Controller
         $attachment = GroupAttachment::where('group_id', $group->id)->findOrFail($attachmentId);
 
         // delete file
+        Storage::disk('public')->delete($attachment->file_path);
         Storage::delete('public/' . $attachment->file_path);
 
         $attachment->delete();

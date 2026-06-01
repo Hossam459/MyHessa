@@ -31,6 +31,8 @@ class GroupController extends Controller {
     private const LESSON_SEASON_END_MONTH = 9;
 
     public function create(GroupRequest $request) {
+        $group = null;
+
         DB::transaction(function() use ($request, &$group) {
             $group = Group::create($request->only(['name','description','subject_id','grade_level_id','max_students','price','teacher_id'
 ]));
@@ -39,6 +41,11 @@ class GroupController extends Controller {
                 GroupSchedule::create(['group_id'=>$group->id]+$s);
             }
         });
+
+        if (!$group) {
+            return $this->error(null, __('messages.invalid_data'), 422);
+        }
+
         $group->load('schedules');
         $this->generateLessonsFromSchedules($group);
 
@@ -57,16 +64,32 @@ class GroupController extends Controller {
 
     public function update(GroupRequest $request,$groupId) {
         $group = Group::findOrFail($groupId);
+
+        $user = auth()->user();
+        if (!$user || !$user->teacher || (int) $group->teacher_id !== (int) $user->teacher->id) {
+            return $this->error(null, __('group.not_group_teacher'), 403);
+        }
+
         DB::transaction(function() use ($request,$group) {
-            $group->update($request->only(['name','description','subject_id','grade_level_id','max_students','price','teacher_id']));
-            $group->schedules()->delete();
-            foreach($request->schedules as $s){
-                $this->checkScheduleConflict($group->id,$s['day_of_week'],$s['start_time'],$s['end_time']);
-                GroupSchedule::create(['group_id'=>$group->id]+$s);
+            $groupData = $request->only(['name','description','subject_id','grade_level_id','max_students','price']);
+
+            if ($groupData) {
+                $group->update($groupData);
+            }
+
+            if ($request->has('schedules')) {
+                $group->schedules()->delete();
+                foreach($request->schedules as $s){
+                    $this->checkScheduleConflict($group->id,$s['day_of_week'],$s['start_time'],$s['end_time']);
+                    GroupSchedule::create(['group_id'=>$group->id]+$s);
+                }
             }
         });
         $group->load('schedules');
-        $this->generateLessonsFromSchedules($group);
+
+        if ($request->has('schedules')) {
+            $this->generateLessonsFromSchedules($group);
+        }
 
         return $this->success([
             'id' => $group->id,
@@ -166,7 +189,8 @@ class GroupController extends Controller {
         $user = auth()->user();
         if (!$user) return $this->error(null, __('messages.unauthorized'), 401);
 
-        $group = Group::with(['subject', 'gradeLevel', 'teacher.user', 'schedules'])
+        $group = Group::withCount('approvedStudents')
+            ->with(['subject', 'gradeLevel', 'teacher.user', 'schedules'])
             ->findOrFail($groupId);
 
         $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
@@ -195,11 +219,13 @@ class GroupController extends Controller {
             'teacher' => [
                 'id' => $group->teacher->id,
                 'name' => $group->teacher->user->user_name,
-                'image' => $group->teacher->user->image_profile
-                    ? asset('storage/users/' . $group->teacher->user->image_profile)
-                    : null,
+                'image' => $group->teacher->user->image_profile_url,
+                'rating' => $group->teacher->averageRating(),
+                'ratings_count' => $group->teacher->ratingsCount(),
             ],
             'group_schedules' => $group->schedules,
+            'is_can_join' => $group->isCanJoin,
+            'is_already_joined' => $group->isJoinedByStudent($user?->student?->id),
             'is_favorite' => $this->isFavoriteGroup($group),
         ], __('messages.success'));
     }
@@ -237,7 +263,7 @@ class GroupController extends Controller {
         ->get()
         ->map(function ($m) {
             return [
-                'student_id' => $m->student_id,
+                'id' => $m->student_id,
                 'name'       => $m->student?->user?->user_name,
                 'image_profile_url' => $m->student?->user?->image_profile_url,
 
@@ -247,13 +273,84 @@ class GroupController extends Controller {
     return $this->success($students, __('group.students_list'));
 }
 
+public function studentDetails($groupId, $studentId)
+{
+    $user = auth()->user();
+    if (!$user) return $this->error(null, __('messages.unauthorized'), 401);
+
+    $group = Group::findOrFail($groupId);
+
+    $membership = GroupMembership::with([
+            'student.user',
+            'student.gradeLevel',
+            'student.governorate',
+            'student.city',
+        ])
+        ->where('group_id', $group->id)
+        ->where('student_id', $studentId)
+        ->first();
+
+    if (!$membership) {
+        return $this->error(null, __('messages.not_found'), 404);
+    }
+
+    $isGroupTeacher = $user->teacher && (int) $group->teacher_id === (int) $user->teacher->id;
+    $isSameStudent = $user->student && (int) $user->student->id === (int) $studentId;
+
+    if (!$isGroupTeacher && !$isSameStudent) {
+        return $this->error(null, __('group.not_group_teacher'), 403);
+    }
+
+    $student = $membership->student;
+    $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+
+    return $this->success([
+        'student_id' => $student->id,
+        'user_id' => $student->user_id,
+        'name' => $student->user?->user_name,
+        'email' => $student->user?->email,
+        'image_profile_url' => $student->user?->image_profile_url,
+        'first_name' => $student->first_name,
+        'last_name' => $student->last_name,
+        'mobile_number' => $student->mobile_number,
+        'birth_day' => $student->birth_day,
+        'parent_name' => $student->parent_name,
+        'parent_contact' => $student->parent_contact,
+        'grade_level' => [
+            'id' => $student->gradeLevel?->id,
+            'name' => $locale === 'ar'
+                ? $student->gradeLevel?->name_ar
+                : $student->gradeLevel?->name_en,
+            'stage' => $student->gradeLevel?->stage,
+        ],
+        'governorate' => [
+            'id' => $student->governorate?->id,
+            'name' => $locale === 'ar'
+                ? $student->governorate?->name_ar
+                : $student->governorate?->name_en,
+        ],
+        'city' => [
+            'id' => $student->city?->id,
+            'name' => $locale === 'ar'
+                ? $student->city?->name_ar
+                : $student->city?->name_en,
+        ],
+        'membership' => [
+            'status' => $membership->status,
+            'requested_by' => $membership->requested_by,
+            'joined_at' => $membership->joined_at,
+            'decided_at' => $membership->decided_at,
+        ],
+    ], __('group.student_details'));
+}
+
 
 public function overview(Request $request, $groupId)
 {
     $user = auth()->user();
     if (!$user || !$user->student) return $this->error(null, __('messages.unauthorized'), 401);
 
-    $group = \App\Models\Group::with(['subject', 'gradeLevel', 'teacher.user', 'schedules'])
+    $group = \App\Models\Group::withCount('approvedStudents')->with(['subject', 'gradeLevel', 'teacher.user', 'schedules'])
         ->findOrFail($groupId);
 
     $isApproved = \App\Models\GroupMembership::where('group_id', $group->id)
@@ -277,9 +374,7 @@ public function overview(Request $request, $groupId)
                 'content' => $p->content,
                 'is_pinned' => (bool)$p->is_pinned,
                 'teacher_name' => $p->teacher?->user?->user_name,
-                'teacher_image_profile_url' => $p->teacher?->user?->image_profile
-                    ? asset('storage/users/' . $p->teacher->user->image_profile)
-                    : null,
+                'teacher_image_profile_url' => $p->teacher?->user?->image_profile_url,
                 'created_at' => $p->created_at,
                 'attachments' => $p->attachments->map(fn($a) => [
                     'id' => $a->id,
@@ -327,10 +422,12 @@ public function overview(Request $request, $groupId)
             'teacher' => [
                 'id' => $group->teacher->id,
                 'name' => $group->teacher->user->user_name,
-                'image_profile_url' => $group->teacher->user->image_profile
-                    ? asset('storage/users/' . $group->teacher->user->image_profile)
-                    : null,
+                'image_profile_url' => $group->teacher->user->image_profile_url,
+                'rating' => $group->teacher->averageRating(),
+                'ratings_count' => $group->teacher->ratingsCount(),
             ],
+            'is_can_join' => $group->isCanJoin,
+            'is_already_joined' => true,
             'is_favorite' => $this->isFavoriteGroup($group),
         ],
         'feed' => $feed,
@@ -403,7 +500,11 @@ public function overview(Request $request, $groupId)
                             'id' => $group->teacher?->id,
                             'name' => $group->teacher?->user?->user_name,
                             'image' => $group->teacher?->user?->image_profile_url,
+                            'rating' => $group->teacher?->averageRating() ?? 0,
+                            'ratings_count' => $group->teacher?->ratingsCount() ?? 0,
                         ],
+                        'is_can_join' => $group->isCanJoin,
+                        'is_already_joined' => true,
                         'is_favorite' => $this->isFavoriteGroup($group),
                         'joined_at' => $membership->joined_at,
                     ];
@@ -411,7 +512,7 @@ public function overview(Request $request, $groupId)
 
             return $this->success(
                 $groups,
-                'Student groups loaded successfully'
+                __('group.student_groups_loaded')
             );
         }
 
@@ -455,6 +556,7 @@ public function overview(Request $request, $groupId)
                         ],
 
                         'group_schedules' => $group->schedules,
+                        'is_can_join' => $group->isCanJoin,
 
                         'students_count' => $group->approved_students_count,
                     ];
@@ -462,7 +564,7 @@ public function overview(Request $request, $groupId)
 
             return $this->success(
                 $groups,
-                'Teacher groups loaded successfully'
+                __('group.teacher_groups_loaded')
             );
         }
 
@@ -472,4 +574,57 @@ public function overview(Request $request, $groupId)
             403
         );
     }
+
+
+    public function groupAttendance(Request $request, $groupId)
+{
+    $teacher = auth()->user();
+
+    $group = Group::with([
+        'lessons.attendances.student'
+    ])
+    ->where('teacher_id', $teacher->id)
+    ->findOrFail($groupId);
+
+    $lessons = $group->lessons->map(function ($lesson) {
+
+        $presentCount = $lesson->attendances
+            ->where('status', 'present')
+            ->count();
+
+        $absentCount = $lesson->attendances
+            ->where('status', 'absent')
+            ->count();
+
+        return [
+            'lesson_id' => $lesson->id,
+            'lesson_title' => $lesson->title,
+            'lesson_date' => $lesson->date,
+
+            'summary' => [
+                'present_count' => $presentCount,
+                'absent_count' => $absentCount,
+            ],
+
+            'attendance' => $lesson->attendances->map(function ($attendance) {
+
+                return [
+                    'student_id' => $attendance->student->id,
+                    'student_name' => $attendance->student->name,
+                    'status' => $attendance->status,
+                    'attendance_time' => $attendance->created_at,
+                ];
+            }),
+        ];
+    });
+
+    return response()->json([
+        'group' => [
+            'id' => $group->id,
+            'name' => $group->name,
+        ],
+
+        'lessons' => $lessons,
+    ]);
+}
 }

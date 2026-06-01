@@ -1,0 +1,2052 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "MyHessa API",
+        "description": "MyHessa - Education Management System API",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Local Development Server"
+        }
+    ],
+    "paths": {
+        "/api/user": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get authenticated API user",
+                "operationId": "2f9ba9632e93eb430d2cd4bf4c077334",
+                "responses": {
+                    "200": {
+                        "description": "Authenticated user"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register a student or teacher",
+                "operationId": "3bed8e9a99fd1014808f2fa909b98180",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "password_confirmation",
+                                    "role",
+                                    "mobile_number"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Ahmed Ali"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "student@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret123"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "example": "student",
+                                        "enum": [
+                                            "student",
+                                            "teacher"
+                                        ]
+                                    },
+                                    "mobile_number": {
+                                        "type": "string",
+                                        "example": "01000000000"
+                                    },
+                                    "grade_level": {
+                                        "type": "integer",
+                                        "example": 1,
+                                        "nullable": true
+                                    },
+                                    "subjects[]": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "nullable": true
+                                    },
+                                    "image_profile": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Registered successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login and receive JWT token",
+                "operationId": "00301804d6cf8149a5f47b8961cef879",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "student@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Logged in successfully"
+                    },
+                    "400": {
+                        "description": "Invalid credentials"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/auth/profile": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get authenticated profile",
+                "operationId": "b9f66daca64334359f19433eb39c9750",
+                "responses": {
+                    "200": {
+                        "description": "Profile loaded"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout authenticated user",
+                "operationId": "ce9d04d27ba088b471b00ff30d6182a0",
+                "responses": {
+                    "200": {
+                        "description": "Logged out"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/profile/photo": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Update profile photo",
+                "operationId": "ae342c89d446c0d37347e47e5302b4cb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "image_profile"
+                                ],
+                                "properties": {
+                                    "image_profile": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Photo updated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/forgot-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Request password reset code",
+                "operationId": "1e32ff9fa4b57604cff5422c3837804f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset code sent"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/auth/reset-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Reset password with code",
+                "operationId": "17cd26569f52121e6086253d6817f559",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "token",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "example": "123456"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset"
+                    },
+                    "400": {
+                        "description": "Invalid or expired token"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/auth/send-verification-email": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Send verification code",
+                "operationId": "afaed7a83ecfa65f51667ff81fcd3c00",
+                "responses": {
+                    "200": {
+                        "description": "Verification email sent"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/verify-email": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Verify email using code",
+                "operationId": "ca7e49b08d2fbf592fe3b4a0402ccb07",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "token"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Email verified"
+                    },
+                    "400": {
+                        "description": "Invalid or expired token"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/auth/resend-verification": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Resend verification code",
+                "operationId": "ff7e9300d02110cc5c4e87f89e1e5fcc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "student@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Verification email sent"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/pages/about": {
+            "get": {
+                "tags": [
+                    "Pages"
+                ],
+                "summary": "Get about page",
+                "operationId": "b30aaadf4d70103d5a327ed30fff6e3d",
+                "responses": {
+                    "200": {
+                        "description": "About page"
+                    }
+                }
+            }
+        },
+        "/api/pages/terms_conditions": {
+            "get": {
+                "tags": [
+                    "Pages"
+                ],
+                "summary": "Get terms and conditions",
+                "operationId": "5d9dfd8aa6bafbb888c650cf38cf32d7",
+                "responses": {
+                    "200": {
+                        "description": "Terms page"
+                    }
+                }
+            }
+        },
+        "/api/pages/privacy_policy": {
+            "get": {
+                "tags": [
+                    "Pages"
+                ],
+                "summary": "Get privacy policy",
+                "operationId": "0fcc36bdbec75995367de2ea3a14d377",
+                "responses": {
+                    "200": {
+                        "description": "Privacy page"
+                    }
+                }
+            }
+        },
+        "/api/{lang}/lang-test": {
+            "get": {
+                "tags": [
+                    "Localization"
+                ],
+                "summary": "Test localization message",
+                "operationId": "e6df30f853b324894623256a7202545c",
+                "parameters": [
+                    {
+                        "name": "lang",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "en",
+                                "ar"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Localized message"
+                    }
+                }
+            }
+        },
+        "/api/change/{lang}": {
+            "get": {
+                "tags": [
+                    "Localization"
+                ],
+                "summary": "Change active language",
+                "operationId": "047c9ab94329454cb9eb2d0a7d752867",
+                "parameters": [
+                    {
+                        "name": "lang",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "en",
+                                "ar"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirect back"
+                    },
+                    "422": {
+                        "description": "Invalid language"
+                    }
+                }
+            }
+        },
+        "/api/governorates": {
+            "get": {
+                "tags": [
+                    "Regions"
+                ],
+                "summary": "List governorates with cities",
+                "operationId": "4653d7d3a9e0ac63c231a0ad01313907",
+                "responses": {
+                    "200": {
+                        "description": "Governorates loaded"
+                    }
+                }
+            }
+        },
+        "/api/student/home": {
+            "get": {
+                "tags": [
+                    "Student"
+                ],
+                "summary": "Get student home",
+                "operationId": "8aea51693d39179116c5a070383429cb",
+                "responses": {
+                    "200": {
+                        "description": "Student home loaded"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/student/recommended-groups": {
+            "get": {
+                "tags": [
+                    "Student"
+                ],
+                "summary": "Get recommended groups",
+                "operationId": "b5e68e4667bd8c05ec71f99e1e18f622",
+                "responses": {
+                    "200": {
+                        "description": "Recommended groups loaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/favorite": {
+            "post": {
+                "tags": [
+                    "Student"
+                ],
+                "summary": "Toggle favorite group",
+                "operationId": "4cf2b17ec7779f12fece7d9be4d08537",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Favorite state updated"
+                    },
+                    "404": {
+                        "description": "Group not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/favorite-groups": {
+            "get": {
+                "tags": [
+                    "Student"
+                ],
+                "summary": "List favorite groups",
+                "operationId": "7963c42cbfe240fd34ad25712b86dd16",
+                "responses": {
+                    "200": {
+                        "description": "Favorite groups loaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/teacher/home": {
+            "get": {
+                "tags": [
+                    "Teacher"
+                ],
+                "summary": "Get teacher dashboard",
+                "operationId": "719c0f0926bd3f322b603b1ac523c422",
+                "responses": {
+                    "200": {
+                        "description": "Teacher dashboard loaded"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/session/{id}/start": {
+            "post": {
+                "tags": [
+                    "Attendance"
+                ],
+                "summary": "Start attendance session",
+                "operationId": "7a3d59eab447c5cdf8018c7cc1e2d612",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Session started"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/attendance/mark": {
+            "post": {
+                "tags": [
+                    "Attendance"
+                ],
+                "summary": "Mark attendance in bulk",
+                "operationId": "e55ab0f69e1db780d4e1598e30daf6bf",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "lessons_id",
+                                    "students"
+                                ],
+                                "properties": {
+                                    "lessons_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "students": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "student_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "present",
+                                                    "enum": [
+                                                        "present",
+                                                        "late",
+                                                        "absent",
+                                                        "excused"
+                                                    ]
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Attendance saved"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/session/{id}/close": {
+            "post": {
+                "tags": [
+                    "Attendance"
+                ],
+                "summary": "Close attendance session",
+                "operationId": "7cd71e25b4b3fd6e5cbd4c79857f9880",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Session closed"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/attendance/lesson/{lessonId}/students": {
+            "get": {
+                "tags": [
+                    "Attendance"
+                ],
+                "summary": "List students for lesson attendance",
+                "operationId": "7103d88e38bb10586aa17eb53909d3bf",
+                "parameters": [
+                    {
+                        "name": "lessonId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Students loaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/lessons/create": {
+            "post": {
+                "tags": [
+                    "Lessons"
+                ],
+                "summary": "Create lesson",
+                "operationId": "5645c556956102deebe056c19fcd779b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "group_id",
+                                    "teacher_id",
+                                    "start_time",
+                                    "end_time"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Algebra basics"
+                                    },
+                                    "group_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "teacher_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "start_time": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "end_time": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Lesson created"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/lessons/{lessonId}/update": {
+            "put": {
+                "tags": [
+                    "Lessons"
+                ],
+                "summary": "Update lesson",
+                "operationId": "e4d59ab83ecf9b45deff0f5598fad3db",
+                "parameters": [
+                    {
+                        "name": "lessonId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lesson updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/lessons/{lessonId}/close": {
+            "post": {
+                "tags": [
+                    "Lessons"
+                ],
+                "summary": "Close lesson",
+                "operationId": "eece7823555d2fcd0b3a14f761eb5e50",
+                "parameters": [
+                    {
+                        "name": "lessonId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lesson closed"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/lessons/teacher": {
+            "get": {
+                "tags": [
+                    "Lessons"
+                ],
+                "summary": "List teacher lessons",
+                "operationId": "4998e8eaf1e4ebd4ebcef3461cb694b7",
+                "responses": {
+                    "200": {
+                        "description": "Teacher lessons loaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/lessons/student": {
+            "get": {
+                "tags": [
+                    "Lessons"
+                ],
+                "summary": "List student lessons",
+                "operationId": "229bef5c8e9dacccb99197c701809b76",
+                "responses": {
+                    "200": {
+                        "description": "Student lessons loaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/my-groups": {
+            "get": {
+                "tags": [
+                    "Groups"
+                ],
+                "summary": "List current user groups",
+                "operationId": "f30d0063f9f7bdbed6945075115cce4e",
+                "responses": {
+                    "200": {
+                        "description": "Groups loaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/create": {
+            "post": {
+                "tags": [
+                    "Groups"
+                ],
+                "summary": "Create group",
+                "operationId": "911234a729e5fc27b777e4897dab315b",
+                "responses": {
+                    "200": {
+                        "description": "Group created"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/update": {
+            "put": {
+                "tags": [
+                    "Groups"
+                ],
+                "summary": "Update group",
+                "operationId": "dd81b3b8ab161be1bb1dbb2451c0e549",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Group updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/delete": {
+            "delete": {
+                "tags": [
+                    "Groups"
+                ],
+                "summary": "Delete group",
+                "operationId": "574e979286c95eb658b91681c45f4ed1",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Group deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}": {
+            "get": {
+                "tags": [
+                    "Groups"
+                ],
+                "summary": "Get group details",
+                "operationId": "cbf0256b20e3c90f1469d842a60102c0",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Group loaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/students": {
+            "get": {
+                "tags": [
+                    "Groups"
+                ],
+                "summary": "List approved group students",
+                "operationId": "c7c95d40fab4efb52c3a9f0a6fc1ad42",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Students loaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/overview": {
+            "get": {
+                "tags": [
+                    "Groups"
+                ],
+                "summary": "Get student group overview",
+                "operationId": "2de848c537b07599cc46bc51a2e2c7fb",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Overview loaded"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/join-request": {
+            "post": {
+                "tags": [
+                    "Group Memberships"
+                ],
+                "summary": "Request to join group",
+                "operationId": "cc158c93133eaecfb09ba1973ede6418",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Join request sent"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/add-student": {
+            "post": {
+                "tags": [
+                    "Group Memberships"
+                ],
+                "summary": "Teacher adds student",
+                "operationId": "4fdf1b980b88e9a708fbc1e81b2b7d75",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "student_id"
+                                ],
+                                "properties": {
+                                    "student_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Student added"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/leave": {
+            "post": {
+                "tags": [
+                    "Group Memberships"
+                ],
+                "summary": "Student leaves group",
+                "operationId": "f350ca0f391c62518f0e1b924f66b168",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Group left"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/requests/{studentId}/approve": {
+            "post": {
+                "tags": [
+                    "Group Memberships"
+                ],
+                "summary": "Approve join request",
+                "operationId": "841ec8a1a07cd7db8e75a6903611a898",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "studentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request approved"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/remove-student/{studentId}": {
+            "post": {
+                "tags": [
+                    "Group Memberships"
+                ],
+                "summary": "Remove student from group",
+                "operationId": "cc8a02763c12f1594bfdab7b03c0819d",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "studentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Student removed"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/requests/{studentId}/reject": {
+            "post": {
+                "tags": [
+                    "Group Memberships"
+                ],
+                "summary": "Reject join request",
+                "operationId": "e28ed7db214e66e83d1c6e9dcdeb9f88",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "studentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request rejected"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/pending": {
+            "get": {
+                "tags": [
+                    "Group Memberships"
+                ],
+                "summary": "List pending requests",
+                "operationId": "5a614f7c65c0876a9def3adb09c1ec56",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pending requests loaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/requests": {
+            "get": {
+                "tags": [
+                    "Group Memberships"
+                ],
+                "summary": "List pending requests alias",
+                "operationId": "0f746f95d1e02fa18958739768ec1201",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pending requests loaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/materials": {
+            "get": {
+                "tags": [
+                    "Group Materials"
+                ],
+                "summary": "List group materials",
+                "operationId": "7181a1bf15d9bbcd351907e0cbba9d98",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Materials loaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Group Materials"
+                ],
+                "summary": "Upload group material",
+                "operationId": "fca163d314bb326deabd4f028c5bb15b",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Material uploaded"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/aterials/{attachmentId}": {
+            "delete": {
+                "tags": [
+                    "Group Materials"
+                ],
+                "summary": "Delete group material",
+                "description": "This documents the current route typo: 'aterials'.",
+                "operationId": "d248a654e2630f8d15e57c54de511cc9",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "attachmentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Material deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/feed": {
+            "get": {
+                "tags": [
+                    "Group Feed"
+                ],
+                "summary": "List group feed",
+                "operationId": "1ef880098a43670acf5f8fd844f93baa",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10,
+                            "maximum": 30
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Feed loaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Group Feed"
+                ],
+                "summary": "Create feed post",
+                "operationId": "ba1814a7e8a70cef1f9b4ae1d58d2fa2",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "content"
+                                ],
+                                "properties": {
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Please review chapter 1."
+                                    },
+                                    "is_pinned": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "attachments[]": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        },
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Post created"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/feed/{postId}": {
+            "delete": {
+                "tags": [
+                    "Group Feed"
+                ],
+                "summary": "Delete feed post",
+                "operationId": "e2c9fdd73bac111dc72d527c686f6911",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "postId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/groups/{groupId}/feed/{postId}/pin": {
+            "post": {
+                "tags": [
+                    "Group Feed"
+                ],
+                "summary": "Toggle feed post pin",
+                "operationId": "617364034acfe0d72222254e5b49cfe4",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "postId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pin state updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/teachers/{teacherId}/rate": {
+            "post": {
+                "tags": [
+                    "Teacher Ratings"
+                ],
+                "summary": "Rate teacher",
+                "operationId": "5d0b106bf1a24ece5d6709eafe3c995e",
+                "parameters": [
+                    {
+                        "name": "teacherId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "rating"
+                                ],
+                                "properties": {
+                                    "rating": {
+                                        "type": "integer",
+                                        "example": 5,
+                                        "maximum": 5,
+                                        "minimum": 1
+                                    },
+                                    "comment": {
+                                        "type": "string",
+                                        "example": "Great explanation.",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rating saved"
+                    },
+                    "403": {
+                        "description": "Not allowed"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/teachers/{teacherId}/ratings": {
+            "get": {
+                "tags": [
+                    "Teacher Ratings"
+                ],
+                "summary": "List teacher ratings",
+                "operationId": "677cc260e68a56b8668a64e039de8ab6",
+                "parameters": [
+                    {
+                        "name": "teacherId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ratings loaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/teachers/{teacherId}/rating-summary": {
+            "get": {
+                "tags": [
+                    "Teacher Ratings"
+                ],
+                "summary": "Get teacher rating summary",
+                "operationId": "89ac2618d21e22947803519317fd8d0e",
+                "parameters": [
+                    {
+                        "name": "teacherId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rating summary loaded"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/grade-levels": {
+            "get": {
+                "tags": [
+                    "Grade Levels"
+                ],
+                "summary": "List grade levels",
+                "operationId": "c9db3f89b54e545729c3c5efb2d22ea3",
+                "responses": {
+                    "200": {
+                        "description": "Grade levels loaded"
+                    }
+                }
+            }
+        },
+        "/api/grade-levels/{id}": {
+            "get": {
+                "tags": [
+                    "Grade Levels"
+                ],
+                "summary": "Get grade level",
+                "operationId": "d067a2b60a48eeb2309216bdd69985a1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Grade level loaded"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/api/subjects": {
+            "get": {
+                "tags": [
+                    "Subjects"
+                ],
+                "summary": "List subjects grouped by grade level",
+                "operationId": "477dbce92a14dea0f6a204d48f412c00",
+                "responses": {
+                    "200": {
+                        "description": "Subjects loaded"
+                    }
+                }
+            }
+        },
+        "/api/subjects/grouped-by-stage": {
+            "get": {
+                "tags": [
+                    "Subjects"
+                ],
+                "summary": "List subjects grouped by stage",
+                "operationId": "b7b0008c121ad3947a60f8eceed6390a",
+                "responses": {
+                    "200": {
+                        "description": "Subjects loaded"
+                    }
+                }
+            }
+        },
+        "/api/subjects/by-grade-level": {
+            "get": {
+                "tags": [
+                    "Subjects"
+                ],
+                "summary": "List subjects by grade level",
+                "operationId": "17173180c8576c1d7143457859ba63cf",
+                "responses": {
+                    "200": {
+                        "description": "Subjects loaded"
+                    }
+                }
+            }
+        },
+        "/api/version/{platform}": {
+            "get": {
+                "tags": [
+                    "App"
+                ],
+                "summary": "Check mobile app version",
+                "operationId": "ded92fc4de7fcd0de888c7b7ada1c2a5",
+                "parameters": [
+                    {
+                        "name": "platform",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "android",
+                                "ios"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "current_version",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "1.0.0"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Version result"
+                    },
+                    "400": {
+                        "description": "Invalid platform or version"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "JWT Token",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        },
+        {
+            "name": "Pages",
+            "description": "Pages"
+        },
+        {
+            "name": "Localization",
+            "description": "Localization"
+        },
+        {
+            "name": "Regions",
+            "description": "Regions"
+        },
+        {
+            "name": "Student",
+            "description": "Student"
+        },
+        {
+            "name": "Teacher",
+            "description": "Teacher"
+        },
+        {
+            "name": "Attendance",
+            "description": "Attendance"
+        },
+        {
+            "name": "Lessons",
+            "description": "Lessons"
+        },
+        {
+            "name": "Groups",
+            "description": "Groups"
+        },
+        {
+            "name": "Group Memberships",
+            "description": "Group Memberships"
+        },
+        {
+            "name": "Group Materials",
+            "description": "Group Materials"
+        },
+        {
+            "name": "Group Feed",
+            "description": "Group Feed"
+        },
+        {
+            "name": "Teacher Ratings",
+            "description": "Teacher Ratings"
+        },
+        {
+            "name": "Grade Levels",
+            "description": "Grade Levels"
+        },
+        {
+            "name": "Subjects",
+            "description": "Subjects"
+        },
+        {
+            "name": "App",
+            "description": "App"
+        }
+    ]
+}

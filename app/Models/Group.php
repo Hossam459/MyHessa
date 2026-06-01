@@ -27,20 +27,57 @@ public function approvedStudents()
     return $this->hasMany(GroupMembership::class)->where('status','approved');
 }
 
-public function pendingRequests()
-{
-    return $this->hasMany(GroupMembership::class)->where('status','pending');
-}
+    public function activeStudentsCount(): int
+    {
+        return $this->approvedStudents()->count();
+    }
 
-    public function teacher(): BelongsTo { return $this->belongsTo(Teacher::class); }
-    public function subject(): BelongsTo { return $this->belongsTo(Subject::class); }
-    public function gradeLevel(): BelongsTo { return $this->belongsTo(GradeLevel::class); }
+    public function getIsCanJoinAttribute(): bool
+    {
+        if ($this->max_students === null) {
+            return true;
+        }
+
+        return $this->activeStudentsCount() < $this->max_students;
+    }
+
+    public function isJoinedByStudent(?int $studentId): bool
+    {
+        if (!$studentId) {
+            return false;
+        }
+
+        return $this->memberships()
+            ->where('student_id', $studentId)
+            ->where('status', '!=', GroupMembership::STATUS_REJECTED)
+            ->exists();
+    }
+
+    public function pendingRequests()
+    {
+        return $this->hasMany(GroupMembership::class)->where('status','pending');
+    }
+
+    public function teacher(): BelongsTo
+    {
+        return $this->belongsTo(Teacher::class);
+    }
+
+    public function subject(): BelongsTo
+    {
+        return $this->belongsTo(Subject::class);
+    }
+
+    public function gradeLevel(): BelongsTo
+    {
+        return $this->belongsTo(GradeLevel::class);
+    }
 
     public function favoritedBy()
-{
-    return $this->belongsToMany(
-        Student::class,
-        'favorite_groups'
-    )->withTimestamps();
-}
+    {
+        return $this->belongsToMany(
+            Student::class,
+            'favorite_groups'
+        )->withTimestamps();
+    }
 }

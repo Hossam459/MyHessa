@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\City;
 use App\Models\GradeLevel;
+use App\Models\Governorate;
 use App\Models\Attendance;
 
 
@@ -45,6 +47,16 @@ class Student extends Authenticatable
     public function gradeLevel(): BelongsTo
     {
         return $this->belongsTo(GradeLevel::class);
+    }
+
+    public function governorate(): BelongsTo
+    {
+        return $this->belongsTo(Governorate::class, 'goverment_id');
+    }
+
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
     }
 
      public function attendance()

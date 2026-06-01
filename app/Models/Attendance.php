@@ -10,13 +10,17 @@ class Attendance extends Model
         'lessons_id','student_id','status','marked_at'
     ];
 
-    public function student()
+    protected $casts = [
+        'marked_at' => 'datetime',
+    ];
+
+    public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
-    public function lesson()
+    public function lesson(): BelongsTo
     {
-        return $this->belongsTo(Lesson::class);
+        return $this->belongsTo(Lesson::class, 'lessons_id');
     }
 }

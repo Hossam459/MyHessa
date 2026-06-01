@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'required' => 'The :attribute field is required.',
+    'email' => 'The :attribute must be a valid email address.',
+    'exists' => 'The selected :attribute is invalid.',
+    'min' => [
+        'string' => 'The :attribute must be at least :min characters.',
+    ],
+    'invalid_data' => 'Invalid data.',
     'name_required' => 'Name is required ',
     'email_required' => 'Email is required',
     'email_invalid' => 'Email is invalid',
@@ -9,6 +16,8 @@ return [
     'password_min' => 'Password must be at least 6 characters',
     'password_confirmed' => 'Password confirmation does not match',
     'session_required' => 'Session is required',
+    'lessons_required' => 'Lesson is required',
+    'lessons_not_found' => 'Lesson not found',
     'session_not_found' => 'Session not found',
     'students_required' => 'Students list is required',
     'students_array' => 'Students must be an array',
@@ -19,4 +28,5 @@ return [
     'session_closed' => 'The session is closed',
     'session_started' => 'Attendance session started',
     'saved' => 'Attendance saved successfully',
+    'attendance_details' => 'Attendance details retrieved.',
 ];

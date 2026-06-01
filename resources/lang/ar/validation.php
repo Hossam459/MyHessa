@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'required' => 'حقل :attribute مطلوب.',
+    'email' => 'يجب أن يكون :attribute بريدًا إلكترونيًا صحيحًا.',
+    'exists' => ':attribute المحدد غير صحيح.',
+    'min' => [
+        'string' => 'يجب ألا يقل :attribute عن :min أحرف.',
+    ],
+    'invalid_data' => 'بيانات غير صحيحة.',
     'name_required' => 'الاسم مطلوب',
     'email_required' => 'البريد الإلكتروني مطلوب',
     'email_invalid' => 'البريد الإلكتروني غير صالح',
@@ -19,4 +26,7 @@ return [
     'session_closed' => 'الحصة مغلقة',
     'session_started' => 'تم فتح الحضور',
     'saved' => 'تم حفظ كشف الحضور بالكامل',
+    'attendance_details' => 'Attendance details retrieved.',
+    'lessons_required' => 'الحصة مطلوبة.',
+    'lessons_not_found' => 'الحصة غير موجودة.',
 ];

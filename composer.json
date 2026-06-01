@@ -9,6 +9,7 @@
         "php": "^8.2",
         "darkaonline/l5-swagger": "^11.0",
         "guzzlehttp/guzzle": "^7.2",
+        "kreait/laravel-firebase": "^6.2",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
@@ -32,9 +33,9 @@
             "Database\\Seeders\\": "database/seeders/"
         },
         "exclude-from-classmap": [
-        "vendor/league/flysystem/src/Local/",
-        "vendor/laravel/pint/app/Providers/"
-    ]
+            "vendor/league/flysystem/src/Local/",
+            "vendor/laravel/pint/app/Providers/"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

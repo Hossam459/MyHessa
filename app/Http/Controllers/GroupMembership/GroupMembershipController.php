@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Traits\HttpResponses;
 use App\Http\Controllers\Controller;
+use App\Notifications\AppDatabaseNotification;
 
 class GroupMembershipController extends Controller
 {
@@ -61,6 +62,20 @@ class GroupMembershipController extends Controller
             ]
         );
 
+        $this->notifyUser($group->teacher?->user, [
+            'type' => 'group_join_request',
+            'title' => __('notifications.group_join_request_title'),
+            'body' => __('notifications.group_join_request_body', [
+                'student' => $user->user_name,
+                'group' => $group->name,
+            ]),
+            'data' => [
+                'group_id' => $group->id,
+                'student_id' => $student->id,
+                'membership_id' => $membership->id,
+            ],
+        ]);
+
         return $this->success($membership, __('group.join_request_sent'));
     }
 
@@ -109,6 +124,20 @@ class GroupMembershipController extends Controller
             ]
         );
 
+        $student = Student::with('user')->find($studentId);
+        $this->notifyUser($student?->user, [
+            'type' => 'group_student_added',
+            'title' => __('notifications.group_student_added_title'),
+            'body' => __('notifications.group_student_added_body', [
+                'group' => $group->name,
+            ]),
+            'data' => [
+                'group_id' => $group->id,
+                'student_id' => $studentId,
+                'membership_id' => $membership->id,
+            ],
+        ]);
+
         return $this->success($membership, __('group.student_added'));
     }
 
@@ -142,6 +171,20 @@ class GroupMembershipController extends Controller
             'decided_by_teacher_id' => $teacher->id,
             'decided_at' => now(),
             'joined_at' => now(),
+        ]);
+
+        $student = Student::with('user')->find($studentId);
+        $this->notifyUser($student?->user, [
+            'type' => 'group_join_approved',
+            'title' => __('notifications.group_join_approved_title'),
+            'body' => __('notifications.group_join_approved_body', [
+                'group' => $group->name,
+            ]),
+            'data' => [
+                'group_id' => $group->id,
+                'student_id' => (int) $studentId,
+                'membership_id' => $membership->id,
+            ],
         ]);
 
         return $this->success($membership, __('group.approved'));
@@ -179,6 +222,20 @@ class GroupMembershipController extends Controller
             'joined_at' => null,
         ]);
 
+        $student = Student::with('user')->find($studentId);
+        $this->notifyUser($student?->user, [
+            'type' => 'group_join_rejected',
+            'title' => __('notifications.group_join_rejected_title'),
+            'body' => __('notifications.group_join_rejected_body', [
+                'group' => $group->name,
+            ]),
+            'data' => [
+                'group_id' => $group->id,
+                'student_id' => (int) $studentId,
+                'membership_id' => $membership->id,
+            ],
+        ]);
+
         return $this->success($membership, __('group.rejected'));
     }
 
@@ -200,13 +257,114 @@ class GroupMembershipController extends Controller
             ->get()
             ->map(function ($m) {
                 return [
-                    'student_id' => $m->student_id,
+                    'id' => $m->student_id,
                     'name' => $m->student?->user?->user_name,
+                    'image_profile_url' => $m->student?->user?->image_profile_url,
                     'requested_by' => $m->requested_by,
                     'created_at' => $m->created_at,
                 ];
             });
 
-        return $this->success($pending, 'Pending requests');
+        return $this->success($pending, __('group.pending_requests'));
+    }
+
+    // 6) الطالب يغادر الجروب بنفسه
+    public function leave(Request $request, $groupId)
+    {
+        $user = auth()->user();
+        $student = $user->student;
+
+        if (!$student) {
+            return $this->error(null, __('auth.unauthorized'), 401);
+        }
+
+        $group = Group::findOrFail($groupId);
+
+        $membership = GroupMembership::where('group_id', $group->id)
+            ->where('student_id', $student->id)
+            ->first();
+
+        if (!$membership || $membership->status !== 'approved') {
+            return $this->error(null, __('group.not_member'), 400);
+        }
+
+        $membership->update([
+            'status' => 'rejected',
+            'decided_by_teacher_id' => null,
+            'decided_at' => null,
+            'joined_at' => null,
+        ]);
+
+        $this->notifyUser($group->teacher?->user, [
+            'type' => 'group_student_left',
+            'title' => __('notifications.group_student_left_title'),
+            'body' => __('notifications.group_student_left_body', [
+                'student' => $user->user_name,
+                'group' => $group->name,
+            ]),
+            'data' => [
+                'group_id' => $group->id,
+                'student_id' => $student->id,
+                'membership_id' => $membership->id,
+            ],
+        ]);
+
+        return $this->success($membership, __('group.left'));
+    }
+
+    // 7) المدرس يزيل طالب من الجروب
+    public function removeStudent(Request $request, $groupId, $studentId)
+    {
+        $user = auth()->user();
+        $teacher = $user->teacher;
+
+        if (!$teacher) {
+            return $this->error(null, __('auth.unauthorized'), 401);
+        }
+
+        $group = Group::findOrFail($groupId);
+        $this->assertTeacherOwnsGroup($group, $teacher->id);
+
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('student_id', $studentId)
+            ->first();
+
+        if (!$membership) {
+            return $this->error(null, __('messages.not_found'), 404);
+        }
+
+        if ($membership->status === 'removed') {
+            return $this->success($membership, __('group.already_removed'));
+        }
+
+        $membership->update([
+            'status' => 'rejected',
+            'decided_by_teacher_id' => $teacher->id,
+            'decided_at' => now(),
+            'joined_at' => null,
+        ]);
+
+        $student = Student::with('user')->find($studentId);
+        $this->notifyUser($student?->user, [
+            'type' => 'group_student_removed',
+            'title' => __('notifications.group_student_removed_title'),
+            'body' => __('notifications.group_student_removed_body', [
+                'group' => $group->name,
+            ]),
+            'data' => [
+                'group_id' => $group->id,
+                'student_id' => (int) $studentId,
+                'membership_id' => $membership->id,
+            ],
+        ]);
+
+        return $this->success($membership, __('group.removed'));
+    }
+
+    private function notifyUser($user, array $payload): void
+    {
+        if ($user) {
+            $user->notify(new AppDatabaseNotification($payload));
+        }
     }
 }

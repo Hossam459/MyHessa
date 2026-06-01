@@ -13,12 +13,20 @@ class CreateOrUpdateLessonRequest extends FormRequest
 
     public function rules()
     {
+        $required = $this->isMethod('post') ? 'required' : 'sometimes';
+
+        $endTimeRules = [$required, 'date'];
+        if ($this->has('start_time')) {
+            $endTimeRules[] = 'after:start_time';
+        }
+
         return [
-            'title'      => 'required|string|max:255',
-            'group_id'   => 'required|exists:groups,id',
-            'teacher_id' => 'required|exists:teachers,id',
-            'start_time' => 'required|date|after:now',
-            'end_time'   => 'required|date|after:start_time',
+            'title'      => $required . '|string|max:255',
+            'group_id'   => $required . '|exists:groups,id',
+            'teacher_id' => $required . '|exists:teachers,id',
+            'lesson_date'=> 'sometimes|date',
+            'start_time' => $required . '|date|after:now',
+            'end_time'   => $endTimeRules,
         ];
     }
 

@@ -1,20 +1,36 @@
 <?php
+
 return [
     'register_success' => 'User successfully registered.',
     'login_success' => 'Login successful.',
-    'logout_success' => 'Logout successful',
+    'logout_success' => 'Logout successful.',
     'invalid_credentials' => 'Invalid email or password.',
     'error_occurred' => 'Something went wrong.',
-    'unauthorized' => 'Unauthorized',
+    'unauthorized' => 'Unauthorized.',
     'change_lang' => 'Language changed successfully.',
     'success' => 'Success.',
     'not_found' => 'Not found.',
     'invalid_data' => 'Invalid data.',
+    'invalid_language' => 'Invalid language.',
+    'forbidden_teacher_group' => 'Forbidden. You are not the group teacher.',
+    'validation_error' => 'Validation error occurred.',
+
+    // Password reset / email verification
+    'password_reset_link_sent' => 'Password reset code has been sent to your email.',
+    'invalid_token' => 'Invalid or expired token.',
+    'token_expired' => 'The code has expired. Please request a new password reset code.',
+    'password_reset_success' => 'Your password has been reset successfully.',
+    'email_send_failed' => 'Failed to send email. Please try again later.',
+    'email_already_verified' => 'Email is already verified.',
+    'verification_email_sent' => 'Verification code has been sent. Please check your inbox.',
+    'email_verified_successfully' => 'Your email has been verified successfully.',
+
+    // Static pages
     'about_us' => 'MyHessa is an education management platform created to simplify the daily work of private teachers and tutors in Egypt.
 We believe that teachers should focus on teaching, not paperwork or manual tracking. That’s why MyHessa was built to help educators organize classes, manage students, track attendance, control payments, and share educational content easily in one place.
 Our mission is to digitize private education management with a simple, reliable, and Arabic-first experience that fits the local education system, while also supporting English for wider accessibility.
 MyHessa is designed with teachers in mind — simple to use, efficient, and built to solve real problems faced in private lessons.',
-'privacy_policy'=>'At MyHessa, we respect your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, and protect your information when you use our application.
+    'privacy_policy' => 'At MyHessa, we respect your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, and protect your information when you use our application.
 
 Information We Collect
 
@@ -53,7 +69,7 @@ You have the right to access, update, or delete your personal information at any
 Changes to This Policy
 
 We may update this Privacy Policy from time to time. Any changes will be communicated through the app.',
-'terms_conditions'=>'By using MyHessa, you agree to the following terms and conditions. If you do not agree, please do not use the application.
+    'terms_conditions' => 'By using MyHessa, you agree to the following terms and conditions. If you do not agree, please do not use the application.
 
 User Responsibilities
 
@@ -86,30 +102,4 @@ MyHessa is not responsible for disputes between teachers and students related to
 Changes to Terms
 
 We may update these terms at any time. Continued use of the app means acceptance of the updated terms.',
-'students_list' => 'List of students for the lesson',
-  'invalid_data' => 'Invalid data',
-  'rating_required' => 'Rating is required',
-  'rating_integer' => 'Rating must be a number',
-  'rating_min' => 'Minimum rating is 1',
-  'rating_max' => 'Maximum rating is 5',
-  'not_allowed' => 'Only students enrolled with this teacher can rate',
-  'saved' => 'Rating saved',
-  'list' => 'Ratings list',
-  'summary' => 'Rating summary',
-  'list' => 'Group materials',
-  'uploaded' => 'File uploaded',
-  'deleted' => 'File deleted',
-  'forbidden_group_materials' => 'You can only view group materials after your membership is approved.',
-  'forbidden_teacher_group' => 'Forbidden. You are not the group teacher.',
-  'forbidden_group_overview' => 'You are not allowed to view this group.',
-  'overview' => 'Group overview',
-  'password_reset_link_sent' => 'Password reset link has been sent to your email.',
-  'invalid_token' => 'Invalid or expired token.',
-  'token_expired' => 'The token has expired. Please request a new password reset link.',
-  'password_reset_success' => 'Your password has been reset successfully.',
-  'email_send_failed' => 'Failed to send email. Please try again later.',
-  'email_already_verified' => 'Email is already verified.',
-  'verification_email_sent' => 'Verification email has been sent. Please check your inbox.',
-  'email_verified_successfully' => 'Your email has been verified successfully.',
-  'validation_error' => 'Validation error occurred.',
 ];

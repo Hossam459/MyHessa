@@ -1,7 +1,6 @@
 @php
   $isAr = app()->getLocale() === 'ar';
-  $nextLang = $isAr ? 'en' : 'ar';
-@endphp
+  $nextLang = $isAr ? 'en' : 'ar'  @endphp
 <!doctype html>
 <html lang="{{ app()->getLocale() }}" dir="{{ $isAr ? 'rtl' : 'ltr' }}">
 <head>

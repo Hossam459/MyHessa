@@ -16,6 +16,8 @@ class TeacherProfileResource extends JsonResource
             'mobile_number' => $this->mobile_number,
             'birth_day' => $this->birth_day,
             'bio' => $this->bio,
+            'rating' => $this->averageRating(),
+            'ratings_count' => $this->ratingsCount(),
             'subjects' => $this->subjects->map(fn ($subject) => [
                 'id' => $subject->id,
                 'name' => app()->getLocale() === 'ar'

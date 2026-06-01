@@ -18,8 +18,7 @@ class PasswordResetMail extends Mailable implements ShouldQueue
      */
     public function __construct(
         public string $email,
-        public string $token,
-        public string $resetUrl
+        public string $code
     ) {}
 
     /**
@@ -41,8 +40,7 @@ class PasswordResetMail extends Mailable implements ShouldQueue
             view: 'emails.password-reset',
             with: [
                 'email' => $this->email,
-                'token' => $this->token,
-                'resetUrl' => $this->resetUrl,
+                'code' => $this->code,
             ],
         );
     }

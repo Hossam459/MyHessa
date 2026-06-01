@@ -18,8 +18,7 @@ class EmailVerificationMail extends Mailable implements ShouldQueue
      */
     public function __construct(
         public string $email,
-        public string $token,
-        public string $verificationUrl
+        public string $code
     ) {}
 
     /**
@@ -41,8 +40,7 @@ class EmailVerificationMail extends Mailable implements ShouldQueue
             view: 'emails.email-verification',
             with: [
                 'email' => $this->email,
-                'token' => $this->token,
-                'verificationUrl' => $this->verificationUrl,
+                'code' => $this->code,
             ],
         );
     }

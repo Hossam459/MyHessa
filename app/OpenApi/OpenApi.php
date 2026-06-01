@@ -2,15 +2,27 @@
 
 namespace App\OpenApi;
 
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 
 /**
- * @OA\Info(
- *     title="MyHessa API",
- *     version="1.0.0",
- *     description="API documentation for MyHessa application"
- * )
+ * Root OpenAPI metadata for L5 Swagger.
  */
+#[OA\Info(
+    version: '1.0.0',
+    title: 'MyHessa API',
+    description: 'MyHessa - Education Management System API'
+)]
+#[OA\Server(
+    url: 'http://localhost:8000',
+    description: 'Local Development Server'
+)]
+#[OA\SecurityScheme(
+    securityScheme: 'bearerAuth',
+    type: 'http',
+    description: 'JWT Token',
+    bearerFormat: 'JWT',
+    scheme: 'bearer'
+)]
 class OpenApi
 {
 }

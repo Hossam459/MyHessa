@@ -28,19 +28,64 @@ class StudentHomeController extends Controller
         $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
 
         // Subjects
-$subjects = Subject::where('grade_level_id', $student->grade_level_id)
-    ->get(['id', 'name_ar', 'name_en'])
-    ->map(function ($subject) use ($locale) {
-        return [
-            'id' => $subject->id,
-            'name' => $locale === 'ar'
-                ? $subject->name_ar
-                : $subject->name_en,
-        ];
-    });
+        $subjects = Subject::where('grade_level_id', $student->grade_level_id)
+            ->get(['id', 'name_ar', 'name_en'])
+            ->map(function ($subject) use ($locale) {
+                return [
+                    'id' => $subject->id,
+                    'name' => $locale === 'ar'
+                        ? $subject->name_ar
+                        : $subject->name_en,
+                ];
+            });
 
+        // Get recommended groups
+        $recommendedGroups = $this->getRecommendedGroups($student, $locale);
+
+        return $this->success([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->user_name,
+                'image' => $user->image_profile_url,
+            ],
+
+            'grade_level' => [
+                'id' => $student->grade_level_id,
+                'name' => $locale === 'ar'
+                    ? $student->gradeLevel?->name_ar
+                    : $student->gradeLevel?->name_en,
+            ],
+
+            'subjects' => $subjects,
+            'recommended_groups' => $recommendedGroups,
+
+        ], __('student.home_loaded'));
+    }
+
+    public function recommendedGroups(): JsonResponse
+    {
+        $user = auth()->user();
+
+        if (!$user || $user->role !== 'student') {
+            return $this->error(
+                null,
+                __('messages.unauthorized'),
+                403
+            );
+        }
+
+        $student = $user->student;
+        $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+
+        $recommendedGroups = $this->getRecommendedGroups($student, $locale);
+
+        return $this->success($recommendedGroups, __('student.recommended_groups_loaded'));
+    }
+
+    private function getRecommendedGroups($student, $locale)
+    {
         // Recommended groups (same grade + city + government)
-        $recommendedGroups = Group::with([
+        $recommendedGroups = Group::withCount('approvedStudents')->with([
                 'teacher.user',
                 'teacher',
                 'subject',
@@ -52,9 +97,8 @@ $subjects = Subject::where('grade_level_id', $student->grade_level_id)
                       ->where('city_id', $student->city_id);
             })
             ->latest()
-            ->take(10)
             ->get()
-            ->map(function ($group) use ($locale) {
+            ->map(function ($group) use ($locale, $student) {
                 return [
                     'id' => $group->id,
                     'name' => $group->name,
@@ -76,14 +120,18 @@ $subjects = Subject::where('grade_level_id', $student->grade_level_id)
                         'id' => $group->teacher?->id,
                         'name' => $group->teacher?->user?->user_name,
                         'image' => $group->teacher?->user?->image_profile_url,
+                        'rating' => $group->teacher?->averageRating() ?? 0,
+                        'ratings_count' => $group->teacher?->ratingsCount() ?? 0,
                     ],
+                    'is_can_join' => $group->isCanJoin,
+                    'is_already_joined' => $group->isJoinedByStudent($student->id),
                     'is_favorite' => $this->isFavoriteGroup($group),
                 ];
             });
 
         // fallback: same government only
         if ($recommendedGroups->isEmpty()) {
-            $recommendedGroups = Group::with([
+            $recommendedGroups = Group::withCount('approvedStudents')->with([
                     'teacher.user',
                     'teacher',
                     'subject',
@@ -94,9 +142,8 @@ $subjects = Subject::where('grade_level_id', $student->grade_level_id)
                     $query->where('goverment_id', $student->goverment_id);
                 })
                 ->latest()
-                ->take(10)
                 ->get()
-                ->map(function ($group) use ($locale) {
+                ->map(function ($group) use ($locale, $student) {
                     return [
                         'id' => $group->id,
                         'name' => $group->name,
@@ -118,30 +165,17 @@ $subjects = Subject::where('grade_level_id', $student->grade_level_id)
                             'id' => $group->teacher?->id,
                             'name' => $group->teacher?->user?->user_name,
                             'image' => $group->teacher?->user?->image_profile_url,
+                            'rating' => $group->teacher?->averageRating() ?? 0,
+                            'ratings_count' => $group->teacher?->ratingsCount() ?? 0,
                         ],
+                        'is_can_join' => $group->isCanJoin,
+                        'is_already_joined' => $group->isJoinedByStudent($student->id),
                         'is_favorite' => $this->isFavoriteGroup($group),
                     ];
                 });
         }
 
-        return $this->success([
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->user_name,
-                'image' => $user->image_profile_url,
-            ],
-
-            'grade_level' => [
-                'id' => $student->grade_level_id,
-                'name' => $locale === 'ar'
-                    ? $student->gradeLevel?->name_ar
-                    : $student->gradeLevel?->name_en,
-            ],
-
-            'subjects' => $subjects,
-            'recommended_groups' => $recommendedGroups,
-
-        ], 'Student home loaded successfully');
+        return $recommendedGroups;
     }
 
     private function isFavoriteGroup(Group $group): bool

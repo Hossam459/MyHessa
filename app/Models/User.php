@@ -26,6 +26,8 @@ class User extends Authenticatable implements JWTSubject
         'image_profile',
         'role',
         'is_verified',
+        'fcm_token',
+        'fcm_token_updated_at',
     ];
 
     /**
@@ -49,6 +51,7 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'fcm_token_updated_at' => 'datetime',
         ];
     }
 
@@ -83,7 +86,21 @@ class User extends Authenticatable implements JWTSubject
             return null;
         }
 
-        return asset('storage/users/' . $this->image_profile);
+        $path = ltrim($this->image_profile, '/');
+
+        if (!str_contains($path, '/')) {
+            $path = 'users/' . $path;
+        }
+
+        return asset('storage/' . $path);
     }
 
+
+
+
+    // FCM Push Notification Token — read by App\Notifications\Channels\FcmChannel.
+    public function routeNotificationForFcm($notification = null): ?string
+    {
+        return $this->fcm_token ?: null;
+    }
 }

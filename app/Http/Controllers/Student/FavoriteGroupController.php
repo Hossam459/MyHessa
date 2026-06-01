@@ -32,7 +32,7 @@ class FavoriteGroupController extends Controller
 
             return $this->error(
                 null,
-                'Group not found',
+                __('group.not_found'),
                 404
             );
         }
@@ -48,7 +48,7 @@ class FavoriteGroupController extends Controller
 
             return $this->success([
                 'is_favorite' => false
-            ], 'Removed from favorites');
+            ], __('favorite.removed'));
         }
 
         $student->favoriteGroups()
@@ -56,7 +56,7 @@ class FavoriteGroupController extends Controller
 
         return $this->success([
             'is_favorite' => true
-        ], 'Added to favorites');
+        ], __('favorite.added'));
     }
 
     public function index(): JsonResponse
@@ -72,6 +72,8 @@ class FavoriteGroupController extends Controller
             );
         }
 
+        $student = $user->student;
+
         $groups = $user->student
             ->favoriteGroups()
             ->with([
@@ -81,7 +83,7 @@ class FavoriteGroupController extends Controller
             ])
             ->latest()
             ->get()
-            ->map(function ($group) {
+            ->map(function ($group) use ($student) {
 
                 return [
 
@@ -95,6 +97,10 @@ class FavoriteGroupController extends Controller
 
                     'is_favorite' => true,
 
+                    'is_can_join' => $group->isCanJoin,
+
+                    'is_already_joined' => $group->isJoinedByStudent($student->id),
+
                     'subject' => [
                         'id' => $group->subject?->id,
 
@@ -104,16 +110,22 @@ class FavoriteGroupController extends Controller
                     ],
 
                     'teacher' => [
+                        'id' => $group->teacher?->id,
+
                         'name' => $group->teacher?->user?->user_name,
 
                         'image' => $group->teacher?->user?->image_profile_url,
+
+                        'rating' => $group->teacher?->averageRating() ?? 0,
+
+                        'ratings_count' => $group->teacher?->ratingsCount() ?? 0,
                     ],
                 ];
             });
 
         return $this->success(
             $groups,
-            'Favorite groups loaded successfully'
+            __('favorite.list')
         );
     }
 }

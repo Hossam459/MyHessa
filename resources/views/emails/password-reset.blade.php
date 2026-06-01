@@ -34,6 +34,17 @@
             border-radius: 5px;
             margin: 20px 0;
         }
+        .code {
+            display: inline-block;
+            padding: 14px 24px;
+            margin: 20px 0;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            color: #007bff;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 6px;
+        }
         .footer {
             background-color: #f5f5f5;
             padding: 15px;
@@ -55,14 +66,9 @@
             
             <p>{{ __('mail.password_reset_message') }}</p>
             
-            <p>
-                <a href="{{ $resetUrl }}" class="button">{{ __('mail.password_reset_button') }}</a>
-            </p>
+            <p class="code">{{ $code }}</p>
             
             <p>{{ __('mail.password_reset_expiry') }}</p>
-            
-            <p>{{ __('mail.password_reset_link') }}<br/>
-            {{ $resetUrl }}</p>
             
             <p>{{ __('mail.password_reset_ignore') }}</p>
         </div>

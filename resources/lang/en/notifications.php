@@ -1,0 +1,34 @@
+<?php
+
+return [
+    'list' => 'Notifications loaded successfully.',
+    'unread_count' => 'Unread notifications count loaded successfully.',
+    'marked_as_read' => 'Notification marked as read.',
+    'marked_all_as_read' => 'All notifications marked as read.',
+    'deleted' => 'Notification deleted successfully.',
+    'fcm_token_registered' => 'Device token registered successfully.',
+    'fcm_token_removed' => 'Device token removed successfully.',
+    'fcm_token_invalid' => 'The provided device token is invalid.',
+
+    // Push / database notifications
+    'group_join_request_title' => 'New join request',
+    'group_join_request_body' => ':student requested to join :group.',
+    'group_student_added_title' => 'Added to group',
+    'group_student_added_body' => 'You have been added to :group.',
+    'group_join_approved_title' => 'Join request approved',
+    'group_join_approved_body' => 'Your request to join :group was approved.',
+    'group_join_rejected_title' => 'Join request rejected',
+    'group_join_rejected_body' => 'Your request to join :group was rejected.',
+    'group_student_left_title' => 'Student left group',
+    'group_student_left_body' => ':student left :group.',
+    'group_student_removed_title' => 'Removed from group',
+    'group_student_removed_body' => 'You have been removed from :group.',
+    'lesson_created_title' => 'New lesson',
+    'lesson_created_body' => 'A new lesson was added to :group.',
+    'lesson_updated_title' => 'Lesson updated',
+    'lesson_updated_body' => 'A lesson in :group was updated.',
+    'lesson_closed_title' => 'Lesson closed',
+    'lesson_closed_body' => 'Attendance was closed for :group.',
+    'group_feed_post_created_title' => 'New group post',
+    'group_feed_post_created_body' => 'New post in :group.',
+];

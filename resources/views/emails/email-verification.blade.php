@@ -34,6 +34,17 @@
             border-radius: 5px;
             margin: 20px 0;
         }
+        .code {
+            display: inline-block;
+            padding: 14px 24px;
+            margin: 20px 0;
+            border: 1px solid #28a745;
+            border-radius: 5px;
+            color: #28a745;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 6px;
+        }
         .footer {
             background-color: #f5f5f5;
             padding: 15px;
@@ -55,14 +66,9 @@
             
             <p>{{ __('mail.email_verification_message') }}</p>
             
-            <p>
-                <a href="{{ $verificationUrl }}" class="button">{{ __('mail.email_verification_button') }}</a>
-            </p>
+            <p class="code">{{ $code }}</p>
             
             <p>{{ __('mail.email_verification_expiry') }}</p>
-            
-            <p>{{ __('mail.email_verification_link') }}<br/>
-            {{ $verificationUrl }}</p>
             
             <p>{{ __('mail.email_verification_no_action') }}</p>
         </div>
