@@ -10,6 +10,7 @@ use App\Models\City;
 use App\Models\GradeLevel;
 use App\Models\Governorate;
 use App\Models\Attendance;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 
 class Student extends Authenticatable
@@ -62,6 +63,11 @@ class Student extends Authenticatable
      public function attendance()
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    public function memberships(): HasMany
+    {
+        return $this->hasMany(GroupMembership::class);
     }
 
     public function favoriteGroups()

@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Search;
 use App\Http\Controllers\Controller;
 use App\Http\Traits\HttpResponses;
 use App\Models\Group;
-use App\Models\GroupMembership;
 use App\Models\Lesson;
+use App\Models\Student;
 use App\Models\Teacher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -52,23 +52,21 @@ class SearchController extends Controller
             'lessons' => collect(),
         ];
 
-        if ($user->role === 'student') {
-            if (in_array($type, ['all', 'groups'], true)) {
-                $data['groups'] = $this->searchGroups($filters, $limit);
-            }
+        if (in_array($type, ['all', 'teachers'], true)) {
+            $data['teachers'] = $this->searchTeachers($filters, $limit);
+        }
 
-            if (in_array($type, ['all', 'teachers'], true)) {
-                $data['teachers'] = $this->searchTeachers($filters, $limit);
-            }
+        if (in_array($type, ['all', 'students'], true)) {
+            $data['students'] = $this->searchStudents($filters, $limit);
+        }
+
+        if ($user->role === 'student' && in_array($type, ['all', 'groups'], true)) {
+            $data['groups'] = $this->searchGroups($filters, $limit);
         }
 
         if ($user->role === 'teacher' && $user->teacher) {
             if (in_array($type, ['all', 'groups'], true)) {
                 $data['groups'] = $this->searchTeacherGroups($user->teacher->id, $filters, $limit);
-            }
-
-            if (in_array($type, ['all', 'students'], true)) {
-                $data['students'] = $this->searchTeacherStudents($user->teacher->id, $filters, $limit);
             }
 
             if (in_array($type, ['all', 'lessons'], true)) {
@@ -154,8 +152,14 @@ class SearchController extends Controller
             $query->where(function ($query) use ($keyword) {
                 $query->where('first_name', 'like', $keyword)
                     ->orWhere('last_name', 'like', $keyword)
+                    ->orWhereRaw("CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) like ?", [$keyword])
+                    ->orWhereRaw("CONCAT(COALESCE(last_name, ''), ' ', COALESCE(first_name, '')) like ?", [$keyword])
+                    ->orWhere('mobile_number', 'like', $keyword)
                     ->orWhere('bio', 'like', $keyword)
-                    ->orWhereHas('user', fn ($userQuery) => $userQuery->where('user_name', 'like', $keyword))
+                    ->orWhereHas('user', function ($userQuery) use ($keyword) {
+                        $userQuery->where('user_name', 'like', $keyword)
+                            ->orWhere('email', 'like', $keyword);
+                    })
                     ->orWhereHas('subjects', function ($subjectQuery) use ($keyword) {
                         $subjectQuery->where('name_ar', 'like', $keyword)
                             ->orWhere('name_en', 'like', $keyword);
@@ -165,6 +169,10 @@ class SearchController extends Controller
 
         if (!empty($filters['subject_id'])) {
             $query->whereHas('subjects', fn ($subjectQuery) => $subjectQuery->where('subjects.id', $filters['subject_id']));
+        }
+
+        if (!empty($filters['grade_level_id'])) {
+            $query->whereHas('groups', fn ($groupQuery) => $groupQuery->where('grade_level_id', $filters['grade_level_id']));
         }
 
         if (!empty($filters['governorate_id'])) {
@@ -182,46 +190,36 @@ class SearchController extends Controller
             ->values();
     }
 
-    private function searchTeacherStudents(int $teacherId, array $filters, int $limit)
+    private function searchStudents(array $filters, int $limit)
     {
-        $query = GroupMembership::with([
-                'student.user',
-                'student.gradeLevel',
-                'group.subject',
-                'group.gradeLevel',
-            ])
-            ->where('status', GroupMembership::STATUS_APPROVED)
-            ->whereHas('group', fn ($groupQuery) => $groupQuery->where('teacher_id', $teacherId));
+        $query = Student::with(['user', 'gradeLevel']);
 
         if (!empty($filters['q'])) {
             $keyword = $this->keyword($filters['q']);
 
             $query->where(function ($query) use ($keyword) {
-                $query->whereHas('student.user', function ($userQuery) use ($keyword) {
+                $query->whereHas('user', function ($userQuery) use ($keyword) {
                     $userQuery->where('user_name', 'like', $keyword)
                         ->orWhere('email', 'like', $keyword);
                 })
-                ->orWhereHas('student', function ($studentQuery) use ($keyword) {
-                    $studentQuery->where('first_name', 'like', $keyword)
-                        ->orWhere('last_name', 'like', $keyword)
-                        ->orWhere('mobile_number', 'like', $keyword)
-                        ->orWhere('parent_name', 'like', $keyword)
-                        ->orWhere('parent_contact', 'like', $keyword);
-                });
+                ->orWhere('first_name', 'like', $keyword)
+                ->orWhere('last_name', 'like', $keyword)
+                ->orWhereRaw("CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) like ?", [$keyword])
+                ->orWhereRaw("CONCAT(COALESCE(last_name, ''), ' ', COALESCE(first_name, '')) like ?", [$keyword])
+                ->orWhere('mobile_number', 'like', $keyword)
+                ->orWhere('parent_name', 'like', $keyword)
+                ->orWhere('parent_contact', 'like', $keyword);
             });
         }
 
         if (!empty($filters['grade_level_id'])) {
-            $query->whereHas('student', fn ($studentQuery) => $studentQuery->where('grade_level_id', $filters['grade_level_id']));
+            $query->where('grade_level_id', $filters['grade_level_id']);
         }
 
-        return $query->latest('joined_at')
+        return $query->latest()
             ->limit($limit)
             ->get()
-            ->unique('student_id')
-            ->map(function (GroupMembership $membership) {
-                $student = $membership->student;
-
+            ->map(function (Student $student) {
                 return [
                     'id' => $student?->id,
                     'user_id' => $student?->user_id,
