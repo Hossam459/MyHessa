@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'account_deleted' => 'تم حذف الحساب بنجاح.',
     'register_success' => 'تم تسجيل المستخدم بنجاح.',
     'login_success' => 'تم تسجيل الدخول بنجاح.',
     'logout_success' => 'تم تسجيل الخروج بنجاح.',

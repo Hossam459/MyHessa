@@ -15,6 +15,8 @@ class GroupRequest extends FormRequest
    public function rules(): array
 {
     $required = $this->isMethod('post') ? 'required' : 'sometimes';
+    $dateRequired = $this->isMethod('post') ? 'required' : 'required_with:end_date';
+    $endDateRequired = $this->isMethod('post') ? 'required' : 'required_with:start_date';
 
     return [
         'name' => [$required, 'string', 'max:255'],
@@ -22,9 +24,11 @@ class GroupRequest extends FormRequest
 
         'subject_id' => [$required, 'exists:subjects,id'],
         'grade_level_id' => [$required, 'exists:grade_levels,id'],
-        'teacher_id' => [$required, 'exists:teachers,id'],
+        'teacher_id' => ['sometimes', 'exists:teachers,id'],
+        'start_date' => [$dateRequired, 'date'],
+        'end_date' => [$endDateRequired, 'date', 'after_or_equal:start_date'],
 
-        'max_students' => ['nullable', 'integer', 'min:1', 'max:200'],
+        'max_students' => ['nullable', 'integer', 'min:1', 'max:1000'],
         'price' => ['nullable', 'numeric', 'min:0'],
 
         'schedules' => [$required, 'array'],

@@ -31,11 +31,22 @@ class GroupController extends Controller {
     private const LESSON_SEASON_END_MONTH = 9;
 
     public function create(GroupRequest $request) {
+        $user = auth()->user();
+        if (!$user || !$user->teacher) {
+            return $this->error(null, __('group.not_group_teacher'), 403);
+        }
+
+        if ($request->filled('teacher_id') && (int) $request->teacher_id !== (int) $user->teacher->id) {
+            return $this->error(null, __('group.not_group_teacher'), 403);
+        }
+
         $group = null;
 
-        DB::transaction(function() use ($request, &$group) {
-            $group = Group::create($request->only(['name','description','subject_id','grade_level_id','max_students','price','teacher_id'
-]));
+        DB::transaction(function() use ($request, $user, &$group) {
+            $groupData = $request->only(['name','description','subject_id','grade_level_id','max_students','price','start_date','end_date']);
+            $groupData['teacher_id'] = $user->teacher->id;
+
+            $group = Group::create($groupData);
             foreach ($request->schedules as $s) {
                 $this->checkScheduleConflict($group->id,$s['day_of_week'],$s['start_time'],$s['end_time']);
                 GroupSchedule::create(['group_id'=>$group->id]+$s);
@@ -58,6 +69,8 @@ class GroupController extends Controller {
             'max_students' => $group->max_students,
             'price' => $group->price,
             'teacher_id' => $group->teacher_id,
+            'start_date' => $group->start_date?->toDateString(),
+            'end_date' => $group->end_date?->toDateString(),
             'group_schedules' => $group->schedules,
         ], __('group.created'));
     }
@@ -71,7 +84,7 @@ class GroupController extends Controller {
         }
 
         DB::transaction(function() use ($request,$group) {
-            $groupData = $request->only(['name','description','subject_id','grade_level_id','max_students','price']);
+            $groupData = $request->only(['name','description','subject_id','grade_level_id','max_students','price','start_date','end_date']);
 
             if ($groupData) {
                 $group->update($groupData);
@@ -87,7 +100,7 @@ class GroupController extends Controller {
         });
         $group->load('schedules');
 
-        if ($request->has('schedules')) {
+        if ($request->has('schedules') || $request->has('start_date') || $request->has('end_date')) {
             $this->generateLessonsFromSchedules($group);
         }
 
@@ -100,6 +113,8 @@ class GroupController extends Controller {
             'max_students' => $group->max_students,
             'price' => $group->price,
             'teacher_id' => $group->teacher_id,
+            'start_date' => $group->start_date?->toDateString(),
+            'end_date' => $group->end_date?->toDateString(),
             'group_schedules' => $group->schedules,
         ], __('group.updated'));
     }
@@ -107,20 +122,12 @@ class GroupController extends Controller {
     private function generateLessonsFromSchedules(Group $group)
     {
         $now = Carbon::now();
-
-        // تحديد بداية ونهاية الموسم
-        $seasonStart = Carbon::create($now->year, self::LESSON_SEASON_START_MONTH, 1)->startOfDay();
-        $seasonEnd = Carbon::create($now->year, self::LESSON_SEASON_END_MONTH, 30)->endOfDay();
-
-        if ($now->month > self::LESSON_SEASON_END_MONTH) {
-            $seasonStart = Carbon::create($now->year + 1, self::LESSON_SEASON_START_MONTH, 1)->startOfDay();
-            $seasonEnd = Carbon::create($now->year + 1, self::LESSON_SEASON_END_MONTH, 30)->endOfDay();
-        }
+        [$rangeStart, $rangeEnd] = $this->lessonGenerationRange($group, $now);
 
         foreach ($group->schedules as $schedule) {
-            $currentLessonDate = $this->getNextLessonDateForSchedule($schedule->day_of_week, $schedule->start_time, $now);
+            $currentLessonDate = $this->getFirstScheduleDateInSeason($schedule->day_of_week, $rangeStart);
 
-            while ($currentLessonDate->lte($seasonEnd)) {
+            while ($currentLessonDate->lte($rangeEnd)) {
                 $lessonDateString = $currentLessonDate->toDateString();
 
                 $exists = Lesson::where('schedule_id', $schedule->id)
@@ -143,6 +150,26 @@ class GroupController extends Controller {
                 $currentLessonDate->addWeek();
             }
         }
+    }
+
+    private function lessonGenerationRange(Group $group, Carbon $now): array
+    {
+        if ($group->start_date && $group->end_date) {
+            return [
+                Carbon::parse($group->start_date)->startOfDay(),
+                Carbon::parse($group->end_date)->endOfDay(),
+            ];
+        }
+
+        $seasonStart = Carbon::create($now->year, self::LESSON_SEASON_START_MONTH, 1)->startOfDay();
+        $seasonEnd = Carbon::create($now->year, self::LESSON_SEASON_END_MONTH, 30)->endOfDay();
+
+        if ($now->month > self::LESSON_SEASON_END_MONTH) {
+            $seasonStart = Carbon::create($now->year + 1, self::LESSON_SEASON_START_MONTH, 1)->startOfDay();
+            $seasonEnd = Carbon::create($now->year + 1, self::LESSON_SEASON_END_MONTH, 30)->endOfDay();
+        }
+
+        return [$seasonStart, $seasonEnd];
     }
 
     private function getNextLessonDateForSchedule(int $dayOfWeek, string $startTime, Carbon $now): Carbon
@@ -215,6 +242,8 @@ class GroupController extends Controller {
             ],
             'max_students' => $group->max_students,
             'price' => $group->price,
+            'start_date' => $group->start_date?->toDateString(),
+            'end_date' => $group->end_date?->toDateString(),
             'teacher_id' => $group->teacher_id,
             'teacher' => [
                 'id' => $group->teacher->id,
@@ -406,6 +435,8 @@ public function overview(Request $request, $groupId)
             'description' => $group->description,
             'price' => $group->price,
             'max_students' => $group->max_students,
+            'start_date' => $group->start_date?->toDateString(),
+            'end_date' => $group->end_date?->toDateString(),
             'subject' => [
                 'id' => $group->subject?->id,
                 'name' => $locale === 'ar'
@@ -479,6 +510,8 @@ public function overview(Request $request, $groupId)
                         'name' => $group->name,
                         'description' => $group->description,
                         'price' => $group->price,
+                        'start_date' => $group->start_date?->toDateString(),
+                        'end_date' => $group->end_date?->toDateString(),
 
                         'subject' => [
                             'id' => $group->subject?->id,
@@ -540,6 +573,8 @@ public function overview(Request $request, $groupId)
                         'name' => $group->name,
                         'description' => $group->description,
                         'price' => $group->price,
+                        'start_date' => $group->start_date?->toDateString(),
+                        'end_date' => $group->end_date?->toDateString(),
 
                         'subject' => [
                             'id' => $group->subject?->id,

@@ -15,9 +15,15 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
 use App\Http\Traits\Access;
+use App\Models\Group;
+use App\Models\GroupAttachment;
+use App\Models\GroupPost;
+use App\Models\GroupPostAttachment;
+use App\Models\Lesson;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Http\Resources\UserResource;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -287,6 +293,91 @@ private function profilePayload(Request $request, array $fields): array
         }else{
             return $this->error(null,  __('messages.unauthorized')) ;
         }  
+    }
+
+    public function deleteAccount(): JsonResponse
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return $this->error(null, __('messages.unauthorized'), 401);
+        }
+
+        try {
+            DB::transaction(function () use ($user) {
+                if ($user->image_profile) {
+                    Storage::disk('public')->delete($user->image_profile);
+                    Storage::disk('public')->delete('users/' . $user->image_profile);
+                }
+
+                $user->notifications()->delete();
+                $user->emailVerificationTokens()->delete();
+                $user->tokens()->delete();
+
+                if ($user->teacher) {
+                    $this->deleteTeacherGroups($user->teacher);
+                    $user->teacher->ratings()->delete();
+                    $user->teacher->subjects()->detach();
+                    $user->teacher->delete();
+                }
+
+                if ($user->student) {
+                    $user->student->favoriteGroups()->detach();
+                    $user->student->delete();
+                }
+
+                auth()->logout();
+
+                $user->delete();
+            });
+        } catch (\Throwable $e) {
+            return $this->error([], __('messages.error_occurred'), 500);
+        }
+
+        return $this->success(null, __('messages.account_deleted'));
+    }
+
+    private function deleteTeacherGroups(Teacher $teacher): void
+    {
+        $groups = Group::where('teacher_id', $teacher->id)->get();
+
+        foreach ($groups as $group) {
+            $lessonIds = Lesson::where('group_id', $group->id)->pluck('id');
+
+            if ($lessonIds->isNotEmpty()) {
+                DB::table('attendances')->whereIn('lessons_id', $lessonIds)->delete();
+                Lesson::whereIn('id', $lessonIds)->delete();
+            }
+
+            DB::table('group_schedules')->where('group_id', $group->id)->delete();
+            DB::table('group_memberships')->where('group_id', $group->id)->delete();
+            DB::table('favorite_groups')->where('group_id', $group->id)->delete();
+
+            $materials = GroupAttachment::where('group_id', $group->id)->get();
+            foreach ($materials as $material) {
+                Storage::disk('public')->delete($material->file_path);
+                Storage::delete('public/' . $material->file_path);
+                $material->delete();
+            }
+
+            $posts = GroupPost::where('group_id', $group->id)->get();
+            foreach ($posts as $post) {
+                $attachments = GroupPostAttachment::where('post_id', $post->id)->get();
+                foreach ($attachments as $attachment) {
+                    Storage::disk('public')->delete($attachment->file_path);
+                    Storage::delete('public/' . $attachment->file_path);
+                    $attachment->delete();
+                }
+
+                $post->delete();
+            }
+
+            $group->delete();
+        }
+
+        DB::table('group_memberships')
+            ->where('decided_by_teacher_id', $teacher->id)
+            ->update(['decided_by_teacher_id' => null]);
     }
 
         public function updateProfilePhoto(Request $request): JsonResponse

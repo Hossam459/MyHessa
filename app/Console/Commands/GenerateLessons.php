@@ -15,11 +15,6 @@ class GenerateLessons extends Command
     public function handle()
     {
         $now = Carbon::now();
-        if ($now->month < 5 || $now->month > 9) {
-            $this->info('Lesson generation is only active from May to September.');
-            return 0;
-        }
-
         $today = $now->toDateString();
         $dayOfWeek = $now->dayOfWeekIso; // 1 = Monday .. 7 = Sunday
 
@@ -28,6 +23,9 @@ class GenerateLessons extends Command
             ->get();
 
         foreach ($schedules as $schedule) {
+            if (!$this->isWithinGroupLessonRange($schedule->group, $now)) {
+                continue;
+            }
 
             // وقت بداية الحصة
             $start = Carbon::parse($today . ' ' . $schedule->start_time);
@@ -59,5 +57,17 @@ class GenerateLessons extends Command
         }
 
         $this->info('Lessons generated successfully');
+    }
+
+    private function isWithinGroupLessonRange($group, Carbon $now): bool
+    {
+        if ($group?->start_date && $group?->end_date) {
+            return $now->betweenIncluded(
+                Carbon::parse($group->start_date)->startOfDay(),
+                Carbon::parse($group->end_date)->endOfDay()
+            );
+        }
+
+        return $now->month >= 5 && $now->month <= 9;
     }
 }

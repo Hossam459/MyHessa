@@ -4,7 +4,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Group extends Model {
-    protected $fillable = ['name','description','subject_id','grade_level_id','max_students','price','teacher_id'];
+    protected $fillable = ['name','description','subject_id','grade_level_id','max_students','price','teacher_id','start_date','end_date'];
+
+    protected $casts = [
+        'start_date' => 'date:Y-m-d',
+        'end_date' => 'date:Y-m-d',
+    ];
 
     public function schedules() { return $this->hasMany(GroupSchedule::class); }
 public function students()

@@ -38,6 +38,7 @@ Route::group(['middleware'=>'api','prefix'=>'auth'],function($router){
     Route::get('/profile',[AuthController::class,'profile']);
     Route::put('/profile',[AuthController::class,'updateProfile']);
     Route::post('/logout',[AuthController::class,'logout']);
+    Route::delete('/delete-account',[AuthController::class,'deleteAccount']);
     Route::delete('/fcm-token', [NotificationController::class, 'removeFcmToken']);
     Route::post('/fcm-token', [NotificationController::class, 'registerFcmToken']);
     Route::post('/profile/photo', [AuthController::class,'updateProfilePhoto'])->middleware('auth:api');
