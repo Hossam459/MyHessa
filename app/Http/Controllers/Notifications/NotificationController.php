@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Notifications;
 
 use App\Http\Controllers\Controller;
 use App\Http\Traits\HttpResponses;
+use App\Models\User;
+use App\Notifications\AppDatabaseNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -103,6 +105,55 @@ class NotificationController extends Controller
         return $this->success(null, __('notifications.fcm_token_removed'));
     }
 
+    public function sendToUsers(Request $request): JsonResponse
+    {
+        $target = $this->normalizeTarget($request->input('target', 'all'));
+        $request->merge(['target' => $target]);
+
+        $validator = Validator::make($request->all(), [
+            'target' => ['required', 'in:all,teachers,students'],
+            'title' => ['required', 'string', 'max:255'],
+            'body' => ['required', 'string', 'max:1000'],
+            'type' => ['sometimes', 'string', 'max:100'],
+            'data' => ['sometimes', 'array'],
+            'image_url' => ['sometimes', 'nullable', 'url', 'max:2048'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error($validator->errors(), __('notifications.send_invalid'), 422);
+        }
+
+        $payload = [
+            'type' => $request->input('type', 'manual_broadcast'),
+            'title' => $request->input('title'),
+            'body' => $request->input('body'),
+            'data' => $request->input('data', []),
+        ];
+
+        if ($request->filled('image_url')) {
+            $payload['image_url'] = $request->input('image_url');
+        }
+
+        $query = User::query()
+            ->when($target === 'teachers')
+            ->when($target === 'students');
+
+        $recipientsCount = (clone $query)->count();
+        $pushRecipientsCount = (clone $query)->whereNotNull('fcm_token')->count();
+
+        $query->select(['id', 'fcm_token'])
+            ->orderBy('id')
+            ->chunkById(100, function ($users) use ($payload) {
+                $users->each(fn (User $user) => $user->notify(new AppDatabaseNotification($payload)));
+            });
+
+        return $this->success([
+            'target' => $target,
+            'recipients_count' => $recipientsCount,
+            'push_recipients_count' => $pushRecipientsCount,
+        ], __('notifications.sent'));
+    }
+
     private function formatNotification($notification): array
     {
         return [
@@ -114,5 +165,18 @@ class NotificationController extends Controller
             'read_at' => $notification->read_at,
             'created_at' => $notification->created_at,
         ];
+    }
+
+    private function normalizeTarget(mixed $target): string
+    {
+        if (! is_string($target)) {
+            return '';
+        }
+
+        return match ($target) {
+            'teacher' => 'teachers',
+            'student' => 'students',
+            default => $target ?: 'all',
+        };
     }
 }

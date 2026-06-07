@@ -9,6 +9,8 @@ return [
     'fcm_token_registered' => 'Device token registered successfully.',
     'fcm_token_removed' => 'Device token removed successfully.',
     'fcm_token_invalid' => 'The provided device token is invalid.',
+    'sent' => 'Notification sent successfully.',
+    'send_invalid' => 'The notification data is invalid.',
 
     // Push / database notifications
     'group_join_request_title' => 'New join request',

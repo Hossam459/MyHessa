@@ -124,6 +124,7 @@ Route::middleware('auth:api')->get('/search', [SearchController::class, 'index']
 Route::middleware('auth:api')->prefix('notifications')->group(function () {
     Route::get('/', [NotificationController::class, 'index']);
     Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::post('/send', [NotificationController::class, 'sendToUsers']);
     Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);
     Route::post('/{notificationId}/read', [NotificationController::class, 'markAsRead']);
     Route::delete('/{notificationId}', [NotificationController::class, 'destroy']);
