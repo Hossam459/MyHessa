@@ -72,6 +72,8 @@ class GroupController extends Controller {
             'start_date' => $group->start_date?->toDateString(),
             'end_date' => $group->end_date?->toDateString(),
             'group_schedules' => $group->schedules,
+            'membership_status' => null,
+            'is_pending' => false,
         ], __('group.created'));
     }
 
@@ -116,6 +118,8 @@ class GroupController extends Controller {
             'start_date' => $group->start_date?->toDateString(),
             'end_date' => $group->end_date?->toDateString(),
             'group_schedules' => $group->schedules,
+            'membership_status' => null,
+            'is_pending' => false,
         ], __('group.updated'));
     }
 
@@ -217,7 +221,7 @@ class GroupController extends Controller {
         if (!$user) return $this->error(null, __('messages.unauthorized'), 401);
 
         $group = Group::withCount('approvedStudents')
-            ->with(['subject', 'gradeLevel', 'teacher.user', 'schedules'])
+            ->with(['subject', 'gradeLevel', 'teacher.user', 'schedules', 'memberships'])
             ->findOrFail($groupId);
 
         $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
@@ -256,6 +260,12 @@ class GroupController extends Controller {
             'is_can_join' => $group->isCanJoin,
             'is_already_joined' => $group->isJoinedByStudent($user?->student?->id),
             'is_favorite' => $this->isFavoriteGroup($group),
+            'membership_status' => ($group->relationLoaded('memberships')
+                ? $group->memberships->firstWhere('student_id', $user?->student?->id)?->status
+                : $group->memberships()->where('student_id', $user?->student?->id)->value('status')) ?? null,
+            'is_pending' => ($group->relationLoaded('memberships')
+                ? ($group->memberships->firstWhere('student_id', $user?->student?->id)?->status === GroupMembership::STATUS_PENDING)
+                : $group->memberships()->where('student_id', $user?->student?->id)->where('status', GroupMembership::STATUS_PENDING)->exists()),
         ], __('messages.success'));
     }
 
@@ -460,6 +470,8 @@ public function overview(Request $request, $groupId)
             'is_can_join' => $group->isCanJoin,
             'is_already_joined' => true,
             'is_favorite' => $this->isFavoriteGroup($group),
+            'membership_status' => 'approved',
+            'is_pending' => false,
         ],
         'feed' => $feed,
         'materials' => $materials,
@@ -540,6 +552,8 @@ public function overview(Request $request, $groupId)
                         'is_already_joined' => true,
                         'is_favorite' => $this->isFavoriteGroup($group),
                         'joined_at' => $membership->joined_at,
+                        'membership_status' => 'approved',
+                        'is_pending' => false,
                     ];
                 });
 
@@ -594,6 +608,8 @@ public function overview(Request $request, $groupId)
                         'is_can_join' => $group->isCanJoin,
 
                         'students_count' => $group->approved_students_count,
+                        'membership_status' => null,
+                        'is_pending' => false,
                     ];
                 });
 

@@ -88,6 +88,7 @@ Route::middleware(['auth:api', 'role:student'])->group(function () {
 
     Route::get('/student/home', [StudentHomeController::class, 'index']);
     Route::get('/student/recommended-groups', [StudentHomeController::class, 'recommendedGroups']);
+    Route::get('/student/pending-requests', [GroupMembershipController::class, 'studentPendingRequests']);
 
 });
 
@@ -148,6 +149,7 @@ Route::group(['middleware'=>'api','prefix'=>'groups'],function($router){
     Route::delete('/{groupId}/delete',[GroupController::class,'delete'])->middleware('auth:api');
     Route::get('/{groupId}', [GroupController::class, 'show'])->middleware(['auth:api']);
     Route::post('/{groupId}/join-request', [GroupMembershipController::class, 'studentRequestJoin'])->middleware('auth:api');
+    Route::post('/{groupId}/cancel-request', [GroupMembershipController::class, 'cancelRequest'])->middleware(['auth:api','role:student']);
     Route::post('/{groupId}/add-student',  [GroupMembershipController::class, 'teacherAddStudent'])->middleware('auth:api');
     Route::post('/{groupId}/leave', [GroupMembershipController::class, 'leave'])->middleware('auth:api');
     Route::post('/{groupId}/requests/{studentId}/approve', [GroupMembershipController::class, 'approve'])->middleware('auth:api');

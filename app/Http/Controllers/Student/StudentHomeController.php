@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use App\Models\Group;
+use App\Models\GroupMembership;
 use App\Models\Subject;
 use App\Http\Traits\HttpResponses;
 
@@ -89,7 +90,9 @@ class StudentHomeController extends Controller
                 'teacher.user',
                 'teacher',
                 'subject',
-                'gradeLevel'
+                'gradeLevel',
+                'latestLesson.attendances',
+                'memberships',
             ])
             ->where('grade_level_id', $student->grade_level_id)
             ->whereHas('teacher', function ($query) use ($student) {
@@ -123,6 +126,12 @@ class StudentHomeController extends Controller
                         'rating' => $group->teacher?->averageRating() ?? 0,
                         'ratings_count' => $group->teacher?->ratingsCount() ?? 0,
                     ],
+                    'membership_status' => ($group->relationLoaded('memberships')
+                        ? $group->memberships->firstWhere('student_id', $student->id)?->status
+                        : $group->memberships()->where('student_id', $student->id)->value('status')) ?? null,
+                    'is_pending' => ($group->relationLoaded('memberships')
+                        ? ($group->memberships->firstWhere('student_id', $student->id)?->status === GroupMembership::STATUS_PENDING)
+                        : $group->memberships()->where('student_id', $student->id)->where('status', GroupMembership::STATUS_PENDING)->exists()),
                     'is_can_join' => $group->isCanJoin,
                     'is_already_joined' => $group->isJoinedByStudent($student->id),
                     'is_favorite' => $this->isFavoriteGroup($group),
@@ -135,7 +144,9 @@ class StudentHomeController extends Controller
                     'teacher.user',
                     'teacher',
                     'subject',
-                    'gradeLevel'
+                    'gradeLevel',
+                    'latestLesson.attendances',
+                    'memberships',
                 ])
                 ->where('grade_level_id', $student->grade_level_id)
                 ->whereHas('teacher', function ($query) use ($student) {
@@ -168,6 +179,12 @@ class StudentHomeController extends Controller
                             'rating' => $group->teacher?->averageRating() ?? 0,
                             'ratings_count' => $group->teacher?->ratingsCount() ?? 0,
                         ],
+                        'membership_status' => ($group->relationLoaded('memberships')
+                            ? $group->memberships->firstWhere('student_id', $student->id)?->status
+                            : $group->memberships()->where('student_id', $student->id)->value('status')) ?? null,
+                        'is_pending' => ($group->relationLoaded('memberships')
+                            ? ($group->memberships->firstWhere('student_id', $student->id)?->status === GroupMembership::STATUS_PENDING)
+                            : $group->memberships()->where('student_id', $student->id)->where('status', GroupMembership::STATUS_PENDING)->exists()),
                         'is_can_join' => $group->isCanJoin,
                         'is_already_joined' => $group->isJoinedByStudent($student->id),
                         'is_favorite' => $this->isFavoriteGroup($group),
@@ -176,6 +193,31 @@ class StudentHomeController extends Controller
         }
 
         return $recommendedGroups;
+    }
+
+    private function groupAttendanceStatus(Group $group, ?int $studentId = null): string
+    {
+        $lesson = $group->relationLoaded('latestLesson')
+            ? $group->latestLesson
+            : $group->latestLesson()->with('attendances')->first();
+
+        if (!$lesson) {
+            return 'pending';
+        }
+
+        if (!$studentId) {
+            return $lesson->attendance_status ?? 'pending';
+        }
+
+        if ($lesson->attendance_status === 'cancelled') {
+            return 'cancelled';
+        }
+
+        $attendance = $lesson->relationLoaded('attendances')
+            ? $lesson->attendances->firstWhere('student_id', $studentId)
+            : $lesson->attendances()->where('student_id', $studentId)->first();
+
+        return $attendance?->status ?? 'unmarked';
     }
 
     private function isFavoriteGroup(Group $group): bool

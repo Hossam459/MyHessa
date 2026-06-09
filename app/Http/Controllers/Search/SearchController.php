@@ -8,6 +8,7 @@ use App\Models\Group;
 use App\Models\Lesson;
 use App\Models\Student;
 use App\Models\Teacher;
+use App\Models\GroupMembership;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -103,7 +104,7 @@ class SearchController extends Controller
     private function groupQuery(array $filters)
     {
         $query = Group::withCount('approvedStudents')
-            ->with(['subject', 'gradeLevel', 'teacher.user', 'teacher.governorate', 'teacher.city']);
+            ->with(['subject', 'gradeLevel', 'teacher.user', 'teacher.governorate', 'teacher.city', 'latestLesson.attendances', 'memberships']);
 
         if (!empty($filters['q'])) {
             $keyword = $this->keyword($filters['q']);
@@ -301,10 +302,41 @@ class SearchController extends Controller
                 'rating' => $group->teacher?->averageRating() ?? 0,
                 'ratings_count' => $group->teacher?->ratingsCount() ?? 0,
             ],
+            'membership_status' => ($group->relationLoaded('memberships')
+                ? $group->memberships->firstWhere('student_id', $studentId)?->status
+                : $group->memberships()->where('student_id', $studentId)->value('status')) ?? null,
+            'is_pending' => ($group->relationLoaded('memberships')
+                ? ($group->memberships->firstWhere('student_id', $studentId)?->status === GroupMembership::STATUS_PENDING)
+                : $group->memberships()->where('student_id', $studentId)->where('status', GroupMembership::STATUS_PENDING)->exists()),
             'is_can_join' => $group->isCanJoin,
             'is_already_joined' => $group->isJoinedByStudent($studentId),
             'is_favorite' => $this->isFavoriteGroup($group),
         ];
+    }
+
+    private function groupAttendanceStatus(Group $group, ?int $studentId = null): string
+    {
+        $lesson = $group->relationLoaded('latestLesson')
+            ? $group->latestLesson
+            : $group->latestLesson()->with('attendances')->first();
+
+        if (!$lesson) {
+            return 'pending';
+        }
+
+        if (!$studentId) {
+            return $lesson->attendance_status ?? 'pending';
+        }
+
+        if ($lesson->attendance_status === 'cancelled') {
+            return 'cancelled';
+        }
+
+        $attendance = $lesson->relationLoaded('attendances')
+            ? $lesson->attendances->firstWhere('student_id', $studentId)
+            : $lesson->attendances()->where('student_id', $studentId)->first();
+
+        return $attendance?->status ?? 'unmarked';
     }
 
     private function formatTeacher(Teacher $teacher): array

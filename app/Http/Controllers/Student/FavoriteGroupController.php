@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use App\Models\Group;
+use App\Models\GroupMembership;
 use App\Http\Traits\HttpResponses;
 
 class FavoriteGroupController extends Controller
@@ -79,7 +80,8 @@ class FavoriteGroupController extends Controller
             ->with([
                 'subject',
                 'teacher.user',
-                'gradeLevel'
+                'gradeLevel',
+                'memberships'
             ])
             ->latest()
             ->get()
@@ -120,6 +122,12 @@ class FavoriteGroupController extends Controller
 
                         'ratings_count' => $group->teacher?->ratingsCount() ?? 0,
                     ],
+                    'membership_status' => ($group->relationLoaded('memberships')
+                        ? $group->memberships->firstWhere('student_id', $student->id)?->status
+                        : $group->memberships()->where('student_id', $student->id)->value('status')) ?? null,
+                    'is_pending' => ($group->relationLoaded('memberships')
+                        ? ($group->memberships->firstWhere('student_id', $student->id)?->status === GroupMembership::STATUS_PENDING)
+                        : $group->memberships()->where('student_id', $student->id)->where('status', GroupMembership::STATUS_PENDING)->exists()),
                 ];
             });
 

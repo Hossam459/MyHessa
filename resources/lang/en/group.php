@@ -23,6 +23,8 @@ return [
     'already_rejected' => 'Already rejected.',
     'rejected' => 'Rejected.',
     'pending_requests' => 'Pending requests loaded successfully.',
+    'no_pending_request' => 'No pending request found for this group.',
+    'request_cancelled' => 'Join request cancelled successfully.',
     'not_member' => 'You are not a member of this group.',
     'left' => 'You left the group successfully.',
     'already_removed' => 'Student already removed.',

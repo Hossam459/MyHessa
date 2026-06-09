@@ -3,6 +3,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 class Group extends Model {
     protected $fillable = ['name','description','subject_id','grade_level_id','max_students','price','teacher_id','start_date','end_date'];
 
@@ -12,6 +13,7 @@ class Group extends Model {
     ];
 
     public function schedules() { return $this->hasMany(GroupSchedule::class); }
+    public function latestLesson(): HasOne { return $this->hasOne(Lesson::class)->latestOfMany('lesson_date'); }
 public function students()
 {
     return $this->belongsToMany(
@@ -55,6 +57,7 @@ public function approvedStudents()
         return $this->memberships()
             ->where('student_id', $studentId)
             ->where('status', '!=', GroupMembership::STATUS_REJECTED)
+            ->where('status', '!=', GroupMembership::STATUS_PENDING)
             ->exists();
     }
 

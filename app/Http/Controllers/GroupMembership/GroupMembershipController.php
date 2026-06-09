@@ -268,7 +268,59 @@ class GroupMembershipController extends Controller
         return $this->success($pending, __('group.pending_requests'));
     }
 
+    public function studentPendingRequests(Request $request)
+    {
+        $user = $request->user();
+        $student = $user?->student;
+
+        if (!$student) {
+            return $this->error(null, __('auth.unauthorized'), 401);
+        }
+
+        $pending = GroupMembership::with([
+                'group.subject',
+                'group.gradeLevel',
+                'group.teacher.user',
+            ])
+            ->where('student_id', $student->id)
+            ->where('status', GroupMembership::STATUS_PENDING)
+            ->latest()
+            ->get()
+            ->map(fn (GroupMembership $membership) => $this->formatStudentPendingRequest($membership));
+
+        return $this->success($pending, __('group.pending_requests'));
+    }
+
+    public function cancelRequest(Request $request, $groupId)
+    {
+        $user = $request->user();
+        $student = $user?->student;
+
+        if (!$student) {
+            return $this->error(null, __('auth.unauthorized'), 401);
+        }
+
+        $group = Group::findOrFail($groupId);
+
+        $membership = GroupMembership::where('group_id', $group->id)
+            ->where('student_id', $student->id)
+            ->first();
+
+        if (!$membership || $membership->status !== GroupMembership::STATUS_PENDING) {
+            return $this->error(null, __('group.no_pending_request'), 400);
+        }
+
+        $membership->update([
+            'status' => GroupMembership::STATUS_REJECTED,
+            'decided_by_teacher_id' => null,
+            'decided_at' => null,
+            'joined_at' => null,
+        ]);
+
+        return $this->success($membership, __('group.request_cancelled'));
+    }
     // 6) الطالب يغادر الجروب بنفسه
+
     public function leave(Request $request, $groupId)
     {
         $user = auth()->user();
@@ -366,5 +418,45 @@ class GroupMembershipController extends Controller
         if ($user) {
             $user->notify(new AppDatabaseNotification($payload));
         }
+    }
+
+    private function formatStudentPendingRequest(GroupMembership $membership): array
+    {
+        $group = $membership->group;
+        $locale = app()->getLocale();
+
+        return [
+            'membership_id' => $membership->id,
+            'group_id' => $membership->group_id,
+            'status' => $membership->status,
+            'requested_by' => $membership->requested_by,
+            'created_at' => $membership->created_at,
+            'group' => [
+                'id' => $group?->id,
+                'name' => $group?->name,
+                'description' => $group?->description,
+                'price' => $group?->price,
+                'max_students' => $group?->max_students,
+                'start_date' => $group?->start_date,
+                'end_date' => $group?->end_date,
+                'subject' => [
+                    'id' => $group?->subject?->id,
+                    'name' => $locale === 'ar'
+                        ? $group?->subject?->name_ar
+                        : $group?->subject?->name_en,
+                ],
+                'grade_level' => [
+                    'id' => $group?->gradeLevel?->id,
+                    'name' => $locale === 'ar'
+                        ? $group?->gradeLevel?->name_ar
+                        : $group?->gradeLevel?->name_en,
+                ],
+                'teacher' => [
+                    'id' => $group?->teacher?->id,
+                    'name' => $group?->teacher?->user?->user_name,
+                    'image_profile_url' => $group?->teacher?->user?->image_profile_url,
+                ],
+            ],
+        ];
     }
 }
